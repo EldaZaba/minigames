@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Piškvorky (Tic Tac Toe) - Miniherní Web</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+      background-color: #f3f4f6;
+    }
+    #gameBoard {
+      display: grid;
+      grid-template-columns: repeat(3, 100px);
+      grid-template-rows: repeat(3, 100px);
+      gap: 10px;
+      justify-content: center;
+      margin: 2rem auto;
+    }
+    .cell {
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 0 5px #ccc;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 48px;
+      cursor: pointer;
+      user-select: none;
+      transition: background-color 0.3s;
+    }
+    .cell:hover {
+      background-color: #e0e7ff;
+    }
+  </style>
+</head>
+<body class="flex flex-col items-center min-h-screen p-4">
+  <header class="mb-6 text-center">
+    <h1 class="text-4xl font-bold text-blue-600 mb-2">Piškvorky (Tic Tac Toe)</h1>
+    <p class="text-gray-700">Hrajte proti kamarádovi nebo sami.</p>
+  </header>
+
+  <div id="gameBoard" role="grid" aria-label="Piškvorky hra">
+    <!-- 9 cells -->
+    <div class="cell" data-index="0" role="gridcell" aria-label="Pole 1"></div>
+    <div class="cell" data-index="1" role="gridcell" aria-label="Pole 2"></div>
+    <div class="cell" data-index="2" role="gridcell" aria-label="Pole 3"></div>
+    <div class="cell" data-index="3" role="gridcell" aria-label="Pole 4"></div>
+    <div class="cell" data-index="4" role="gridcell" aria-label="Pole 5"></div>
+    <div class="cell" data-index="5" role="gridcell" aria-label="Pole 6"></div>
+    <div class="cell" data-index="6" role="gridcell" aria-label="Pole 7"></div>
+    <div class="cell" data-index="7" role="gridcell" aria-label="Pole 8"></div>
+    <div class="cell" data-index="8" role="gridcell" aria-label="Pole 9"></div>
+  </div>
+
+  <div class="mt-6 space-x-4">
+    <button id="btnRestart" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">Restartovat hru</button>
+    <a href="../games.html" class="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition">Zpět na výběr her</a>
+  </div>
+
+  <script>
+    const cells = document.querySelectorAll('.cell');
+    let board = Array(9).fill(null);
+    let currentPlayer = 'X';
+    let gameActive = true;
+
+    function checkWin() {
+      const winPatterns = [
+        [0,1,2], [3,4,5], [6,7,8], // rows
+        [0,3,6], [1,4,7], [2,5,8], // columns
+        [0,4,8], [2,4,6]           // diagonals
+      ];
+      for (const pattern of winPatterns) {
+        const [a,b,c] = pattern;
+        if (board[a] && board[a] === board[b] && board[a] === board[c]) {
+          return board[a];
+        }
+      }
+      return null;
+    }
+
+    function checkDraw() {
+      return board.every(cell => cell !== null);
+    }
+
+    function updateStatus(message) {
+      alert(message);
+    }
+
+    function handleCellClick(e) {
+      const index = e.target.getAttribute('data-index');
+      if (!gameActive || board[index]) return;
+
+      board[index] = currentPlayer;
+      e.target.textContent = currentPlayer;
+
+      const winner = checkWin();
+      if (winner) {
+        updateStatus(`Hráč ${winner} vyhrál!`);
+        gameActive = false;
+        return;
+      }
+
+      if (checkDraw()) {
+        updateStatus('Remíza!');
+        gameActive = false;
+        return;
+      }
+
+      currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+    }
+
+    cells.forEach(cell => cell.addEventListener('click', handleCellClick));
+
+    document.getElementById('btnRestart').addEventListener('click', () => {
+      board = Array(9).fill(null);
+      cells.forEach(cell => cell.textContent = '');
+      currentPlayer = 'X';
+      gameActive = true;
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Výběr Miniher - Miniherní Web</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+      background-color: #f3f4f6;
+    }
+  </style>
+</head>
+<body class="bg-gray-100 min-h-screen p-4">
+  <header class="text-center mb-8">
+    <h1 class="text-4xl font-bold mb-2">Vyberte si hru</h1>
+    <p class="text-lg text-gray-700">Vyberte si jednu z mnoha miniher níže</p>
+  </header>
+
+  <main class="max-w-4xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 p-4">
+    <a href="games/puzzle.html" class="bg-white rounded-lg shadow p-6 flex flex-col items-center hover:shadow-lg transition">
+      <i class="fas fa-puzzle-piece fa-3x text-pink-600 mb-4"></i>
+      <h2 class="text-xl font-semibold mb-2">Puzzle</h2>
+      <p class="text-gray-600 text-center">Skládejte obrázkové puzzle co nejrychleji. (Solo)</p>
+    </a>
+    <a href="games/memory.html" class="bg-white rounded-lg shadow p-6 flex flex-col items-center hover:shadow-lg transition">
+      <i class="fas fa-th-large fa-3x text-purple-600 mb-4"></i>
+      <h2 class="text-xl font-semibold mb-2">Pexeso (Memory)</h2>
+      <p class="text-gray-600 text-center">Najděte všechny dvojice karet co nejrychleji. (Solo)</p>
+    </a>
+    <a href="games/2048.html" class="bg-white rounded-lg shadow p-6 flex flex-col items-center hover:shadow-lg transition">
+      <i class="fas fa-th-large fa-3x text-yellow-500 mb-4"></i>
+      <h2 class="text-xl font-semibold mb-2">2048</h2>
+      <p class="text-gray-600 text-center">Spojujte čísla a dosáhněte čísla 2048. (Solo)</p>
+    </a>
+    <a href="games/snake.html" class="bg-white rounded-lg shadow p-6 flex flex-col items-center hover:shadow-lg transition">
+      <i class="fas fa-dragon fa-3x text-green-600 mb-4"></i>
+      <h2 class="text-xl font-semibold mb-2">Had (Snake)</h2>
+      <p class="text-gray-600 text-center">Klasická hra Had s ovládáním na klávesnici nebo dotykem. (Solo, vs PC)</p>
+    </a>
+    <a href="games/tictactoe.html" class="bg-white rounded-lg shadow p-6 flex flex-col items-center hover:shadow-lg transition">
+      <i class="fas fa-times fa-3x text-blue-600 mb-4"></i>
+      <h2 class="text-xl font-semibold mb-2">Piškvorky (Tic Tac Toe)</h2>
+      <p class="text-gray-600 text-center">Hrajte klasické piškvorky proti kamarádovi nebo počítači. (Vs Friend, vs PC)</p>
+    </a>
+    <a href="games/connectfour.html" class="bg-white rounded-lg shadow p-6 flex flex-col items-center hover:shadow-lg transition">
+      <i class="fas fa-circle fa-3x text-red-500 mb-4"></i>
+      <h2 class="text-xl font-semibold mb-2">Čtyři v řadě (Connect Four)</h2>
+      <p class="text-gray-600 text-center">Spojte čtyři kameny v řadě dříve než soupeř. (Vs Friend)</p>
+    </a>
+    <a href="games/rockpaperscissors.html" class="bg-white rounded-lg shadow p-6 flex flex-col items-center hover:shadow-lg transition">
+      <i class="fas fa-hand-rock fa-3x text-gray-700 mb-4"></i>
+      <h2 class="text-xl font-semibold mb-2">Kámen, nůžky, papír</h2>
+      <p class="text-gray-600 text-center">Hrajte klasickou hru proti počítači nebo kamarádovi. (Vs Friend, vs PC)</p>
+    </a>
+    <a href="games/simon.html" class="bg-white rounded-lg shadow p-6 flex flex-col items-center hover:shadow-lg transition">
+      <i class="fas fa-brain fa-3x text-indigo-600 mb-4"></i>
+      <h2 class="text-xl font-semibold mb-2">Simon říká (Simon Says)</h2>
+      <p class="text-gray-600 text-center">Zapamatujte si a opakujte sekvence barev a zvuků.</p>
+    </a>
+    <a href="games/hangman.html" class="bg-white rounded-lg shadow p-6 flex flex-col items-center hover:shadow-lg transition">
+      <i class="fas fa-user-secret fa-3x text-green-700 mb-4"></i>
+      <h2 class="text-xl font-semibold mb-2">Šibenice (Hangman)</h2>
+      <p class="text-gray-600 text-center">Hádejte slova dříve než se šibenice dokončí.</p>
+    </a>
+    <a href="games/minesweeper.html" class="bg-white rounded-lg shadow p-6 flex flex-col items-center hover:shadow-lg transition">
+      <i class="fas fa-bomb fa-3x text-red-600 mb-4"></i>
+      <h2 class="text-xl font-semibold mb-2">Minesweeper</h2>
+      <p class="text-gray-600 text-center">Najděte všechny miny bez výbuchu. (Solo)</p>
+    </a>
+  </main>
+
+  <footer class="mt-12 text-center text-gray-500 text-sm">
+    &copy; 2024 Miniherní Web. Všechna práva vyhrazena.
+  </footer>
+</body>
+</html>

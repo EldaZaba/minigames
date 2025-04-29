@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Šibenice (Hangman) - Miniherní Web</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+      background-color: #f3f4f6;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      padding: 1rem;
+    }
+    #wordDisplay {
+      font-size: 2rem;
+      letter-spacing: 0.3rem;
+      margin: 2rem 0;
+      user-select: none;
+    }
+    #letters {
+      display: flex;
+      flex-wrap: wrap;
+      max-width: 400px;
+      justify-content: center;
+      gap: 10px;
+    }
+    .letter {
+      background-color: white;
+      border-radius: 6px;
+      box-shadow: 0 0 5px #ccc;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 1.5rem;
+      cursor: pointer;
+      user-select: none;
+      transition: background-color 0.3s;
+    }
+    .letter.used {
+      background-color: #9ca3af;
+      cursor: default;
+      color: #6b7280;
+    }
+    #status {
+      margin-top: 1rem;
+      font-weight: 700;
+      font-size: 1.2rem;
+      min-height: 2rem;
+      color: #374151;
+    }
+  </style>
+</head>
+<body>
+  <header class="text-center">
+    <h1 class="text-4xl font-bold text-green-700 mb-2">Šibenice (Hangman)</h1>
+    <p class="text-gray-700">Hádejte slova dříve než se šibenice dokončí.</p>
+  </header>
+
+  <div id="hangmanImage" class="mb-4 text-center">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/7/7a/Hangman-0.png" alt="Šibenice" id="hangmanImg" class="mx-auto" style="max-width: 200px;" />
+  </div>
+
+  <div id="wordDisplay" aria-label="Zobrazované slovo"></div>
+
+  <div id="letters" role="group" aria-label="Písmena k výběru"></div>
+
+  <div id="status" aria-live="polite"></div>
+
+  <div class="mt-6 space-x-4 text-center">
+    <button id="btnRestart" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition">Restartovat hru</button>
+    <br />
+    <a href="../games.html" class="inline-block mt-4 px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition">Zpět na výběr her</a>
+  </div>
+
+  <script>
+    const words = ['auto', 'dům', 'pes', 'kočka', 'strom', 'kolo', 'hra', 'slovo', 'mír', 'les', 'ryba', 'hora', 'zámek', 'most', 'vlak', 'kniha', 'okno', 'květina', 'pták', 'řeka'];
+    let selectedWord = '';
+    let guessedLetters = [];
+    let wrongGuesses = 0;
+    const maxWrongGuesses = 6;
+
+    const wordDisplay = document.getElementById('wordDisplay');
+    const lettersContainer = document.getElementById('letters');
+    const status = document.getElementById('status');
+    const hangmanImg = document.getElementById('hangmanImg');
+
+    function chooseWord() {
+      selectedWord = words[Math.floor(Math.random() * words.length)];
+    }
+
+    function displayWord() {
+      const display = selectedWord.split('').map(letter => (guessedLetters.includes(letter) ? letter : '_')).join(' ');
+      wordDisplay.textContent = display;
+    }
+
+    function createLetterButtons() {
+      lettersContainer.innerHTML = '';
+      for (let i = 97; i <= 122; i++) {
+        const letter = String.fromCharCode(i);
+        const button = document.createElement('button');
+        button.textContent = letter;
+        button.classList.add('letter');
+        button.setAttribute('aria-label', `Písmeno ${letter}`);
+        button.addEventListener('click', () => handleGuess(letter));
+        lettersContainer.appendChild(button);
+      }
+    }
+
+    function handleGuess(letter) {
+      if (guessedLetters.includes(letter)) return;
+      guessedLetters.push(letter);
+      const buttons = document.querySelectorAll('.letter');
+      buttons.forEach(btn => {
+        if (btn.textContent === letter) {
+          btn.classList.add('used');
+          btn.disabled = true;
+        }
+      });
+
+      if (!selectedWord.includes(letter)) {
+        wrongGuesses++;
+        updateHangmanImage();
+      }
+
+      displayWord();
+      checkGameStatus();
+    }
+
+    function updateHangmanImage() {
+      hangmanImg.src = `https://upload.wikimedia.org/wikipedia/commons/7/7a/Hangman-${wrongGuesses}.png`;
+    }
+
+    function checkGameStatus() {
+      if (!wordDisplay.textContent.includes('_')) {
+        status.textContent = 'Gratulujeme! Vyhráli jste.';
+        disableAllLetters();
+      } else if (wrongGuesses >= maxWrongGuesses) {
+        status.textContent = `Prohráli jste! Slovo bylo: ${selectedWord}`;
+        disableAllLetters();
+      } else {
+        status.textContent = `Špatné pokusy: ${wrongGuesses} z ${maxWrongGuesses}`;
+      }
+    }
+
+    function disableAllLetters() {
+      const buttons = document.querySelectorAll('.letter');
+      buttons.forEach(btn => btn.disabled = true);
+    }
+
+    function initGame() {
+      guessedLetters = [];
+      wrongGuesses = 0;
+      chooseWord();
+      displayWord();
+      createLetterButtons();
+      status.textContent = '';
+      updateHangmanImage();
+    }
+
+    document.getElementById('btnRestart').addEventListener('click', () => {
+      initGame();
+    });
+
+    initGame();
+  </script>
+</body>
+</html>
