@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Pexeso (Memory) - Miniherní Web</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+      background-color: #f3f4f6;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      padding: 1rem;
+    }
+    h1 {
+      color: #6b21a8; /* purple-700 */
+      margin-bottom: 0.5rem;
+    }
+    #gameBoard {
+      display: grid;
+      grid-template-columns: repeat(4, 100px);
+      grid-gap: 15px;
+      margin-top: 1rem;
+    }
+    .card {
+      width: 100px;
+      height: 100px;
+      background-color: #7c3aed; /* purple-600 */
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(124, 58, 237, 0.5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 48px;
+      color: transparent;
+      cursor: pointer;
+      user-select: none;
+      position: relative;
+      perspective: 600px;
+    }
+    .card.flipped .front {
+      transform: rotateY(0deg);
+      color: #fff;
+    }
+    .card.flipped .back {
+      transform: rotateY(180deg);
+    }
+    .card .front, .card .back {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border-radius: 12px;
+      backface-visibility: hidden;
+      transition: transform 0.4s;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .card .front {
+      background-color: #7c3aed; /* purple-600 */
+      color: transparent;
+      transform: rotateY(180deg);
+      font-weight: 700;
+    }
+    .card .back {
+      background-color: #a78bfa; /* purple-300 */
+      color: white;
+      font-weight: 700;
+      font-size: 48px;
+      user-select: none;
+    }
+    #playerInfo {
+      margin-top: 1rem;
+      font-size: 18px;
+      color: #4b5563; /* gray-700 */
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      font-weight: 700;
+    }
+    #playerInfo span {
+      padding: 0.25rem 0.5rem;
+      border-radius: 6px;
+    }
+    #player1 {
+      background-color: #a78bfa; /* purple-300 */
+      color: #4c1d95; /* purple-900 */
+    }
+    #player2 {
+      background-color: #c4b5fd; /* purple-200 */
+      color: #4c1d95; /* purple-900 */
+    }
+    #player1.active {
+      background-color: #7c3aed; /* purple-600 */
+      color: white;
+    }
+    #player2.active {
+      background-color: #7c3aed; /* purple-600 */
+      color: white;
+    }
+    button {
+      margin-top: 1rem;
+      background-color: #6b21a8; /* purple-700 */
+      color: white;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    button:hover {
+      background-color: #581c87; /* purple-800 */
+    }
+    a {
+      margin-top: 1rem;
+      color: #6b21a8;
+      text-decoration: underline;
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body>
+  <header class="text-center">
+    <h1>Pexeso (Memory)</h1>
+    <p>Najděte všechny dvojice karet co nejrychleji.</p>
+  </header>
+
+  <div id="gameBoard" aria-label="Herní plocha pexesa" role="grid"></div>
+  <div id="playerInfo" aria-live="polite">
+    <span id="player1" class="active">Hráč 1: 0 bodů</span>
+    <span id="player2">Hráč 2: 0 bodů</span>
+  </div>
+  <button id="btnRestart">Restartovat hru</button>
+  <a href="../games.html">Zpět na výběr her</a>
+
+  <script>
+    const symbols = ['🍎', '🍌', '🍇', '🍉', '🍒', '🥝', '🍍', '🍓'];
+    let cards = [];
+    let flippedCards = [];
+    let matchedCount = 0;
+    let currentPlayer = 1;
+    let scores = {1: 0, 2: 0};
+    const gameBoard = document.getElementById('gameBoard');
+    const player1Display = document.getElementById('player1');
+    const player2Display = document.getElementById('player2');
+    const btnRestart = document.getElementById('btnRestart');
+
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    function createCards() {
+      cards = [];
+      symbols.forEach(symbol => {
+        cards.push({symbol, id: Math.random()});
+        cards.push({symbol, id: Math.random()});
+      });
+      cards = shuffle(cards);
+    }
+
+    function renderCards() {
+      gameBoard.innerHTML = '';
+      cards.forEach((card, index) => {
+        const cardElement = document.createElement('div');
+        cardElement.classList.add('card');
+        cardElement.setAttribute('role', 'button');
+        cardElement.setAttribute('tabindex', '0');
+        cardElement.setAttribute('aria-label', 'Karta');
+        cardElement.dataset.index = index;
+
+        const front = document.createElement('div');
+        front.classList.add('front');
+        front.textContent = card.symbol;
+
+        const back = document.createElement('div');
+        back.classList.add('back');
+        back.textContent = '❓';
+
+        cardElement.appendChild(front);
+        cardElement.appendChild(back);
+
+        cardElement.addEventListener('click', () => flipCard(cardElement));
+        cardElement.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            flipCard(cardElement);
+          }
+        });
+
+        gameBoard.appendChild(cardElement);
+      });
+    }
+
+    function updatePlayerInfo() {
+      player1Display.textContent = `Hráč 1: ${scores[1]} bodů`;
+      player2Display.textContent = `Hráč 2: ${scores[2]} bodů`;
+      if (currentPlayer === 1) {
+        player1Display.classList.add('active');
+        player2Display.classList.remove('active');
+      } else {
+        player2Display.classList.add('active');
+        player1Display.classList.remove('active');
+      }
+    }
+
+    function flipCard(cardElement) {
+      if (flippedCards.length === 2 || cardElement.classList.contains('flipped')) return;
+
+      cardElement.classList.add('flipped');
+      flippedCards.push(cardElement);
+
+      if (flippedCards.length === 2) {
+        setTimeout(checkMatch, 1000);
+      }
+    }
+
+    function checkMatch() {
+      const [card1, card2] = flippedCards;
+      const index1 = card1.dataset.index;
+      const index2 = card2.dataset.index;
+
+      if (cards[index1].symbol === cards[index2].symbol) {
+        matchedCount += 2;
+        scores[currentPlayer]++;
+        updatePlayerInfo();
+        flippedCards = [];
+        if (matchedCount === cards.length) {
+          let winner;
+          if (scores[1] > scores[2]) winner = 'Hráč 1';
+          else if (scores[2] > scores[1]) winner = 'Hráč 2';
+          else winner = 'Remíza';
+          setTimeout(() => alert(`Konec hry! Výsledek: ${winner}`), 200);
+        }
+      } else {
+        flippedCards.forEach(card => card.classList.remove('flipped'));
+        flippedCards = [];
+        currentPlayer = currentPlayer === 1 ? 2 : 1;
+        updatePlayerInfo();
+      }
+    }
+
+    function restartGame() {
+      matchedCount = 0;
+      scores = {1: 0, 2: 0};
+      currentPlayer = 1;
+      flippedCards = [];
+      createCards();
+      renderCards();
+      updatePlayerInfo();
+    }
+
+    btnRestart.addEventListener('click', restartGame);
+
+    restartGame();
+  </script>
+</body>
+</html>

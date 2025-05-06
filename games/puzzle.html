@@ -101,7 +101,7 @@
           const row = Math.floor(i / size);
           const col = i % size;
           if (puzzleType === 'image') {
-            piece.style.backgroundImage = "url('https://cdn-icons-png.flaticon.com/512/616/616408.png')";
+            piece.style.backgroundImage = "url('https://upload.wikimedia.org/wikipedia/commons/3/3a/Cat03.jpg')";
             piece.style.backgroundSize = '400% 400%';
             piece.style.backgroundPosition = `${(col * 100) / (size - 1)}% ${(row * 100) / (size - 1)}%`;
             piece.textContent = '';
@@ -185,15 +185,26 @@
     }
 
     function checkWin() {
-      for (let i = 0; i < pieces.length - 1; i++) {
-        const row = Math.floor(i / size);
-        const col = i % size;
-        const expectedPosition = `${(col * 100) / (size - 1)}% ${(row * 100) / (size - 1)}%`;
-        if (pieces[i].style.backgroundPosition !== expectedPosition) {
-          return false;
+      if (puzzleType === 'image') {
+        for (let i = 0; i < pieces.length - 1; i++) {
+          const row = Math.floor(i / size);
+          const col = i % size;
+          const expectedPosition = `${(col * 100) / (size - 1)}% ${(row * 100) / (size - 1)}%`;
+          if (pieces[i].style.backgroundPosition !== expectedPosition) {
+            return false;
+          }
         }
+        return true;
+      } else if (puzzleType === 'numbers') {
+        // Check if pieces are in numeric order 1 to 15
+        for (let i = 0; i < pieces.length - 1; i++) {
+          if (parseInt(pieces[i].textContent) !== i + 1) {
+            return false;
+          }
+        }
+        return true;
       }
-      return true;
+      return false;
     }
 
     function initGame() {

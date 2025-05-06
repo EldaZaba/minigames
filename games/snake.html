@@ -94,7 +94,7 @@
         if (countdown === 0) {
           clearInterval(countdownInterval);
           velocity = {x: 1, y: 0}; // Start moving right by default
-          gameLoopInterval = setInterval(gameLoop, 100);
+          gameLoopInterval = setInterval(gameLoop, 200);
         } else {
           countdown--;
         }

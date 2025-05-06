@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>2048 - Miniherní Web</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+      background-color: #f3f4f6;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      padding: 1rem;
+    }
+    h1 {
+      color: #ca8a04; /* yellow-600 */
+      margin-bottom: 0.5rem;
+    }
+    #gameContainer {
+      background-color: #bbf7d0; /* green-200 */
+      border-radius: 12px;
+      padding: 1rem;
+      box-shadow: 0 4px 6px rgba(202, 138, 4, 0.5);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    #grid {
+      display: grid;
+      grid-template-columns: repeat(4, 80px);
+      grid-template-rows: repeat(4, 80px);
+      gap: 10px;
+      margin-top: 1rem;
+    }
+    .tile {
+      width: 80px;
+      height: 80px;
+      background-color: #d9f99d; /* green-300 */
+      border-radius: 8px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-weight: 700;
+      font-size: 24px;
+      color: #166534; /* green-800 */
+      user-select: none;
+      transition: background-color 0.3s, transform 0.2s;
+    }
+    .tile-2 { background-color: #d9f99d; color: #166534; }
+    .tile-4 { background-color: #bef264; color: #14532d; }
+    .tile-8 { background-color: #a3e635; color: #14532d; }
+    .tile-16 { background-color: #84cc16; color: #14532d; }
+    .tile-32 { background-color: #65a30d; color: #f9fafb; }
+    .tile-64 { background-color: #4d7c0f; color: #f9fafb; }
+    .tile-128 { background-color: #3f6212; color: #f9fafb; font-size: 20px; }
+    .tile-256 { background-color: #365314; color: #f9fafb; font-size: 20px; }
+    .tile-512 { background-color: #2d460f; color: #f9fafb; font-size: 20px; }
+    .tile-1024 { background-color: #25400d; color: #f9fafb; font-size: 16px; }
+    .tile-2048 { background-color: #1e3a0a; color: #f9fafb; font-size: 16px; }
+    #score {
+      margin-top: 1rem;
+      font-size: 18px;
+      color: #4b5563; /* gray-700 */
+      font-weight: 700;
+    }
+    button {
+      margin-top: 1rem;
+      background-color: #ca8a04; /* yellow-600 */
+      color: white;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    button:hover {
+      background-color: #a16207; /* yellow-700 */
+    }
+    a {
+      margin-top: 1rem;
+      color: #ca8a04;
+      text-decoration: underline;
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body>
+  <header class="text-center">
+    <h1>2048</h1>
+    <p>Spojujte čísla a dosáhněte čísla 2048.</p>
+  </header>
+
+  <div id="gameContainer" role="main" aria-label="Hra 2048">
+    <div id="grid" aria-live="polite" aria-atomic="true"></div>
+    <div id="score">Skóre: 0</div>
+    <button id="btnRestart">Restartovat hru</button>
+    <a href="../games.html">Zpět na výběr her</a>
+  </div>
+
+  <script>
+    const gridSize = 4;
+    let grid = [];
+    let score = 0;
+    const gridElement = document.getElementById('grid');
+    const scoreElement = document.getElementById('score');
+    const btnRestart = document.getElementById('btnRestart');
+
+    function initGrid() {
+      grid = [];
+      for (let i = 0; i < gridSize * gridSize; i++) {
+        grid.push(0);
+      }
+      addRandomTile();
+      addRandomTile();
+      updateGrid();
+      score = 0;
+      updateScore();
+    }
+
+    function addRandomTile() {
+      const emptyIndices = grid.map((v, i) => v === 0 ? i : -1).filter(i => i !== -1);
+      if (emptyIndices.length === 0) return;
+      const index = emptyIndices[Math.floor(Math.random() * emptyIndices.length)];
+      grid[index] = Math.random() < 0.9 ? 2 : 4;
+    }
+
+    function updateGrid() {
+      gridElement.innerHTML = '';
+      grid.forEach(value => {
+        const tile = document.createElement('div');
+        tile.classList.add('tile');
+        if (value > 0) {
+          tile.classList.add('tile-' + value);
+          tile.textContent = value;
+        }
+        gridElement.appendChild(tile);
+      });
+    }
+
+    function updateScore() {
+      scoreElement.textContent = 'Skóre: ' + score;
+    }
+
+    function slide(row) {
+      let arr = row.filter(val => val !== 0);
+      for (let i = 0; i < arr.length - 1; i++) {
+        if (arr[i] === arr[i + 1]) {
+          arr[i] *= 2;
+          score += arr[i];
+          arr[i + 1] = 0;
+        }
+      }
+      arr = arr.filter(val => val !== 0);
+      while (arr.length < gridSize) {
+        arr.push(0);
+      }
+      return arr;
+    }
+
+    function rotateGrid() {
+      let newGrid = [];
+      for (let i = 0; i < gridSize; i++) {
+        for (let j = 0; j < gridSize; j++) {
+          newGrid[i * gridSize + j] = grid[(gridSize - j - 1) * gridSize + i];
+        }
+      }
+      grid = newGrid;
+    }
+
+    function moveLeft() {
+      let moved = false;
+      for (let i = 0; i < gridSize; i++) {
+        const row = grid.slice(i * gridSize, i * gridSize + gridSize);
+        const newRow = slide(row);
+        if (!arraysEqual(row, newRow)) {
+          moved = true;
+          for (let j = 0; j < gridSize; j++) {
+            grid[i * gridSize + j] = newRow[j];
+          }
+        }
+      }
+      return moved;
+    }
+
+    function moveRight() {
+      rotateGrid();
+      rotateGrid();
+      const moved = moveLeft();
+      rotateGrid();
+      rotateGrid();
+      return moved;
+    }
+
+    function moveUp() {
+      rotateGrid();
+      rotateGrid();
+      rotateGrid();
+      const moved = moveLeft();
+      rotateGrid();
+      return moved;
+    }
+
+    function moveDown() {
+      rotateGrid();
+      const moved = moveLeft();
+      rotateGrid();
+      rotateGrid();
+      rotateGrid();
+      return moved;
+    }
+
+    function arraysEqual(a, b) {
+      if (a.length !== b.length) return false;
+      for (let i = 0; i < a.length; i++) {
+        if (a[i] !== b[i]) return false;
+      }
+      return true;
+    }
+
+    function checkGameOver() {
+      if (grid.includes(0)) return false;
+      for (let i = 0; i < gridSize; i++) {
+        for (let j = 0; j < gridSize; j++) {
+          const current = grid[i * gridSize + j];
+          if ((j < gridSize - 1 && current === grid[i * gridSize + j + 1]) ||
+              (i < gridSize - 1 && current === grid[(i + 1) * gridSize + j])) {
+            return false;
+          }
+        }
+      }
+      return true;
+    }
+
+    function checkWin() {
+      return grid.some(value => value >= 2048);
+    }
+
+    function handleKey(e) {
+      let moved = false;
+      switch(e.key) {
+        case 'ArrowLeft':
+          moved = moveLeft();
+          break;
+        case 'ArrowRight':
+          moved = moveRight();
+          break;
+        case 'ArrowUp':
+          moved = moveUp();
+          break;
+        case 'ArrowDown':
+          moved = moveDown();
+          break;
+        default:
+          return;
+      }
+      if (moved) {
+        addRandomTile();
+        updateGrid();
+        updateScore();
+        if (checkWin()) {
+          setTimeout(() => alert('Gratulujeme! Dosáhli jste čísla 2048!'), 100);
+        } else if (checkGameOver()) {
+          setTimeout(() => alert('Konec hry! Žádné další tahy nejsou možné.'), 100);
+        }
+      }
+    }
+
+    btnRestart.addEventListener('click', () => {
+      initGrid();
+    });
+
+    document.addEventListener('keydown', handleKey);
+
+    initGrid();
+  </script>
+</body>
+</html>
