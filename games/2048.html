@@ -6,100 +6,152 @@
   <title>2048 - Miniherní Web</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../assets/theme.css" />
+  <script src="../assets/theme.js" defer></script>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet" />
   <style>
     body {
-      font-family: 'Roboto', sans-serif;
-      background-color: #f3f4f6;
       display: flex;
       flex-direction: column;
       align-items: center;
       min-height: 100vh;
-      padding: 1rem;
+      padding: clamp(16px, 3vw, 32px);
+      gap: 1rem;
+    }
+    header {
+      text-align: center;
     }
     h1 {
-      color: #ca8a04; /* yellow-600 */
-      margin-bottom: 0.5rem;
+      color: var(--accent-2);
+      margin-bottom: 0.35rem;
     }
     #gameContainer {
-      background-color: #bbf7d0; /* green-200 */
-      border-radius: 12px;
-      padding: 1rem;
-      box-shadow: 0 4px 6px rgba(202, 138, 4, 0.5);
+      width: min(92vw, 520px);
+    }
+    .hud {
+      width: 100%;
       display: flex;
-      flex-direction: column;
+      flex-wrap: wrap;
       align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .score-pill {
+      padding: 0.35rem 0.9rem;
+      border-radius: 999px;
+      background: var(--surface-2);
+      border: 1px solid var(--surface-border);
+      font-weight: 600;
+      color: var(--text);
     }
     #grid {
+      --cell-size: clamp(56px, 18vw, 92px);
+      --cell-gap: clamp(8px, 2.4vw, 12px);
       display: grid;
-      grid-template-columns: repeat(4, 80px);
-      grid-template-rows: repeat(4, 80px);
-      gap: 10px;
-      margin-top: 1rem;
+      grid-template-columns: repeat(4, var(--cell-size));
+      grid-template-rows: repeat(4, var(--cell-size));
+      gap: var(--cell-gap);
+      padding: var(--cell-gap);
+      background: var(--surface-2);
+      border: 1px solid var(--surface-border);
+      border-radius: 18px;
+      touch-action: none;
+      user-select: none;
     }
     .tile {
-      width: 80px;
-      height: 80px;
-      background-color: #d9f99d; /* green-300 */
-      border-radius: 8px;
+      width: var(--cell-size);
+      height: var(--cell-size);
+      border-radius: 14px;
       display: flex;
       justify-content: center;
       align-items: center;
       font-weight: 700;
-      font-size: 24px;
-      color: #166534; /* green-800 */
-      user-select: none;
-      transition: background-color 0.3s, transform 0.2s;
+      font-size: clamp(18px, 4vw, 28px);
+      color: #1f2937;
+      background: rgba(255, 255, 255, 0.75);
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      transition: background-color 0.2s ease, transform 0.2s ease;
     }
-    .tile-2 { background-color: #d9f99d; color: #166534; }
-    .tile-4 { background-color: #bef264; color: #14532d; }
-    .tile-8 { background-color: #a3e635; color: #14532d; }
-    .tile-16 { background-color: #84cc16; color: #14532d; }
-    .tile-32 { background-color: #65a30d; color: #f9fafb; }
-    .tile-64 { background-color: #4d7c0f; color: #f9fafb; }
-    .tile-128 { background-color: #3f6212; color: #f9fafb; font-size: 20px; }
-    .tile-256 { background-color: #365314; color: #f9fafb; font-size: 20px; }
-    .tile-512 { background-color: #2d460f; color: #f9fafb; font-size: 20px; }
-    .tile-1024 { background-color: #25400d; color: #f9fafb; font-size: 16px; }
-    .tile-2048 { background-color: #1e3a0a; color: #f9fafb; font-size: 16px; }
-    #score {
+    .tile-2 { background-color: #fef9c3; color: #7c2d12; }
+    .tile-4 { background-color: #fde68a; color: #7c2d12; }
+    .tile-8 { background-color: #facc15; color: #7c2d12; }
+    .tile-16 { background-color: #fb923c; color: #7c2d12; }
+    .tile-32 { background-color: #f97316; color: #ffffff; }
+    .tile-64 { background-color: #ea580c; color: #ffffff; }
+    .tile-128 { background-color: #f43f5e; color: #ffffff; font-size: clamp(16px, 3.6vw, 22px); }
+    .tile-256 { background-color: #db2777; color: #ffffff; font-size: clamp(16px, 3.6vw, 22px); }
+    .tile-512 { background-color: #7c3aed; color: #ffffff; font-size: clamp(14px, 3.2vw, 20px); }
+    .tile-1024 { background-color: #4f46e5; color: #ffffff; font-size: clamp(14px, 3vw, 18px); }
+    .tile-2048 { background-color: #1d4ed8; color: #ffffff; font-size: clamp(14px, 3vw, 18px); }
+    .control-pad {
       margin-top: 1rem;
-      font-size: 18px;
-      color: #4b5563; /* gray-700 */
-      font-weight: 700;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-rows: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      width: min(240px, 70vw);
     }
-    button {
+    .control-btn {
+      background: var(--surface);
+      border: 1px solid var(--surface-border);
+      border-radius: 14px;
+      padding: 0.6rem;
+      font-size: 1.1rem;
+      color: var(--text);
+      box-shadow: var(--shadow-soft);
+    }
+    .control-btn:active {
+      transform: translateY(1px);
+    }
+    .control-spacer {
+      pointer-events: none;
+      opacity: 0;
+    }
+    .link-back {
       margin-top: 1rem;
-      background-color: #ca8a04; /* yellow-600 */
-      color: white;
-      padding: 0.5rem 1rem;
-      border-radius: 8px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: background-color 0.3s;
-    }
-    button:hover {
-      background-color: #a16207; /* yellow-700 */
-    }
-    a {
-      margin-top: 1rem;
-      color: #ca8a04;
+      color: var(--accent-3);
       text-decoration: underline;
-      font-weight: 700;
+      font-weight: 600;
+    }
+    .link-back:hover {
+      color: var(--accent);
+    }
+    @media (max-width: 480px) {
+      .hud {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .btn {
+        width: 100%;
+      }
     }
   </style>
 </head>
 <body>
-  <header class="text-center">
-    <h1>2048</h1>
-    <p>Spojujte čísla a dosáhněte čísla 2048.</p>
+  <header>
+    <h1 class="hero-title">2048</h1>
+    <p class="hero-subtitle">Spojujte čísla a dosáhněte čísla 2048.</p>
   </header>
 
-  <div id="gameContainer" role="main" aria-label="Hra 2048">
+  <div id="gameContainer" class="panel" role="main" aria-label="Hra 2048">
+    <div class="hud">
+      <div id="score" class="score-pill">Skóre: 0</div>
+      <button id="btnRestart" class="btn btn-secondary">Restartovat hru</button>
+    </div>
     <div id="grid" aria-live="polite" aria-atomic="true"></div>
-    <div id="score">Skóre: 0</div>
-    <button id="btnRestart">Restartovat hru</button>
-    <a href="../games.html">Zpět na výběr her</a>
+    <div id="controls" class="control-pad" aria-label="Ovládání">
+      <span class="control-spacer"></span>
+      <button class="control-btn" type="button" data-move="up" aria-label="Nahoru">&uarr;</button>
+      <span class="control-spacer"></span>
+      <button class="control-btn" type="button" data-move="left" aria-label="Doleva">&larr;</button>
+      <span class="control-spacer"></span>
+      <button class="control-btn" type="button" data-move="right" aria-label="Doprava">&rarr;</button>
+      <span class="control-spacer"></span>
+      <button class="control-btn" type="button" data-move="down" aria-label="Dolů">&darr;</button>
+      <span class="control-spacer"></span>
+    </div>
+    <a href="../games.html" class="link-back">Zpět na výběr her</a>
   </div>
 
   <script>
@@ -109,16 +161,14 @@
     const gridElement = document.getElementById('grid');
     const scoreElement = document.getElementById('score');
     const btnRestart = document.getElementById('btnRestart');
+    const controlButtons = document.querySelectorAll('[data-move]');
 
     function initGrid() {
-      grid = [];
-      for (let i = 0; i < gridSize * gridSize; i++) {
-        grid.push(0);
-      }
+      grid = Array(gridSize * gridSize).fill(0);
+      score = 0;
       addRandomTile();
       addRandomTile();
       updateGrid();
-      score = 0;
       updateScore();
     }
 
@@ -240,35 +290,75 @@
       return grid.some(value => value >= 2048);
     }
 
-    function handleKey(e) {
-      let moved = false;
-      switch(e.key) {
-        case 'ArrowLeft':
-          moved = moveLeft();
-          break;
-        case 'ArrowRight':
-          moved = moveRight();
-          break;
-        case 'ArrowUp':
-          moved = moveUp();
-          break;
-        case 'ArrowDown':
-          moved = moveDown();
-          break;
-        default:
-          return;
-      }
-      if (moved) {
-        addRandomTile();
-        updateGrid();
-        updateScore();
-        if (checkWin()) {
-          setTimeout(() => alert('Gratulujeme! Dosáhli jste čísla 2048!'), 100);
-        } else if (checkGameOver()) {
-          setTimeout(() => alert('Konec hry! Žádné další tahy nejsou možné.'), 100);
-        }
+    const moveMap = {
+      left: moveLeft,
+      right: moveRight,
+      up: moveUp,
+      down: moveDown,
+    };
+
+    function applyMove(direction) {
+      const mover = moveMap[direction];
+      if (!mover) return;
+      const moved = mover();
+      if (!moved) return;
+      addRandomTile();
+      updateGrid();
+      updateScore();
+      if (checkWin()) {
+        setTimeout(() => alert('Gratulujeme! Dosáhli jste čísla 2048!'), 100);
+      } else if (checkGameOver()) {
+        setTimeout(() => alert('Konec hry! Žádné další tahy nejsou možné.'), 100);
       }
     }
+
+    function handleKey(e) {
+      const keyMap = {
+        ArrowLeft: 'left',
+        ArrowRight: 'right',
+        ArrowUp: 'up',
+        ArrowDown: 'down',
+        a: 'left',
+        d: 'right',
+        w: 'up',
+        s: 'down',
+      };
+      const direction = keyMap[e.key];
+      if (!direction) return;
+      e.preventDefault();
+      applyMove(direction);
+    }
+
+    controlButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        applyMove(button.dataset.move);
+      });
+    });
+
+    const swipeThreshold = 28;
+    let pointerStart = null;
+
+    gridElement.addEventListener('pointerdown', event => {
+      pointerStart = { x: event.clientX, y: event.clientY };
+      gridElement.setPointerCapture(event.pointerId);
+    });
+
+    gridElement.addEventListener('pointerup', event => {
+      if (!pointerStart) return;
+      const dx = event.clientX - pointerStart.x;
+      const dy = event.clientY - pointerStart.y;
+      pointerStart = null;
+      if (Math.max(Math.abs(dx), Math.abs(dy)) < swipeThreshold) return;
+      if (Math.abs(dx) > Math.abs(dy)) {
+        applyMove(dx > 0 ? 'right' : 'left');
+      } else {
+        applyMove(dy > 0 ? 'down' : 'up');
+      }
+    });
+
+    gridElement.addEventListener('pointercancel', () => {
+      pointerStart = null;
+    });
 
     btnRestart.addEventListener('click', () => {
       initGrid();
