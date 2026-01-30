@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Breakout (Arkanoid) - Miniherní Web</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../assets/theme.css" />
+  <script src="../assets/theme.js" defer></script>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      padding: clamp(16px, 3vw, 32px);
+      gap: 1rem;
+    }
+    header {
+      text-align: center;
+    }
+    .game-shell {
+      width: min(92vw, 560px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+    .hud {
+      width: 100%;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .score-pill {
+      padding: 0.35rem 0.9rem;
+      border-radius: 999px;
+      background: var(--surface-2);
+      border: 1px solid var(--surface-border);
+      font-weight: 600;
+      color: var(--text);
+    }
+    #breakoutCanvas {
+      width: min(92vw, 420px);
+      height: auto;
+      aspect-ratio: 4 / 5;
+      border-radius: 18px;
+      border: 1px solid var(--surface-border);
+      box-shadow: var(--shadow-soft);
+      background: #0f172a;
+      touch-action: none;
+    }
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+    }
+    .hint {
+      margin: 0;
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      text-align: center;
+    }
+    .link-back {
+      margin-top: 0.5rem;
+      color: var(--accent-3);
+      text-decoration: underline;
+      font-weight: 600;
+    }
+    .link-back:hover {
+      color: var(--accent);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1 class="hero-title">Breakout</h1>
+    <p class="hero-subtitle">Rozbijte všechny cihly a nenechte míček spadnout.</p>
+  </header>
+
+  <div class="panel game-shell" role="main" aria-label="Breakout">
+    <div class="hud">
+      <div class="score-pill">Skóre: <span id="score">0</span></div>
+      <div class="controls">
+        <button id="btnStart" class="btn">Start</button>
+        <button id="btnRestart" class="btn btn-secondary">Restart</button>
+      </div>
+    </div>
+    <canvas id="breakoutCanvas" width="420" height="525" aria-label="Hra Breakout"></canvas>
+    <p class="hint">Ovládání: šipky vlevo/vpravo nebo tažení prstem.</p>
+  </div>
+  <a href="../games.html" class="link-back">Zpět na výběr her</a>
+
+  <script>
+    const canvas = document.getElementById('breakoutCanvas');
+    const ctx = canvas.getContext('2d');
+    const scoreEl = document.getElementById('score');
+    const btnStart = document.getElementById('btnStart');
+    const btnRestart = document.getElementById('btnRestart');
+
+    const paddle = {
+      width: 90,
+      height: 12,
+      x: 0,
+      y: canvas.height - 24,
+      speed: 6,
+    };
+
+    const ball = {
+      x: canvas.width / 2,
+      y: canvas.height - 40,
+      radius: 8,
+      dx: 2.6,
+      dy: -2.6,
+    };
+
+    const brickRowCount = 5;
+    const brickColCount = 7;
+    const brickPadding = 10;
+    const brickOffsetTop = 60;
+    const brickOffsetLeft = 20;
+    const brickHeight = 18;
+    const brickWidth = (canvas.width - brickOffsetLeft * 2 - brickPadding * (brickColCount - 1)) / brickColCount;
+
+    let bricks = [];
+    let score = 0;
+    let running = false;
+    let gameOver = false;
+    let victory = false;
+    let rightPressed = false;
+    let leftPressed = false;
+
+    function initBricks() {
+      bricks = [];
+      for (let r = 0; r < brickRowCount; r++) {
+        bricks[r] = [];
+        for (let c = 0; c < brickColCount; c++) {
+          const brickX = brickOffsetLeft + c * (brickWidth + brickPadding);
+          const brickY = brickOffsetTop + r * (brickHeight + brickPadding);
+          bricks[r][c] = { x: brickX, y: brickY, status: 1 };
+        }
+      }
+    }
+
+    function updateScore() {
+      scoreEl.textContent = score;
+    }
+
+    function resetGame() {
+      paddle.x = (canvas.width - paddle.width) / 2;
+      ball.x = canvas.width / 2;
+      ball.y = canvas.height - 40;
+      ball.dx = 2.6;
+      ball.dy = -2.6;
+      score = 0;
+      running = false;
+      gameOver = false;
+      victory = false;
+      rightPressed = false;
+      leftPressed = false;
+      initBricks();
+      updateScore();
+    }
+
+    function startGame() {
+      if (gameOver || victory) {
+        resetGame();
+      }
+      running = true;
+    }
+
+    function endGame(win) {
+      running = false;
+      gameOver = !win;
+      victory = win;
+    }
+
+    function drawPaddle() {
+      ctx.fillStyle = '#38bdf8';
+      ctx.fillRect(paddle.x, paddle.y, paddle.width, paddle.height);
+    }
+
+    function drawBall() {
+      ctx.beginPath();
+      ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+      ctx.fillStyle = '#f97316';
+      ctx.fill();
+    }
+
+    function drawBricks() {
+      for (let r = 0; r < brickRowCount; r++) {
+        for (let c = 0; c < brickColCount; c++) {
+          const brick = bricks[r][c];
+          if (brick.status === 1) {
+            ctx.fillStyle = r % 2 === 0 ? '#eab308' : '#f97316';
+            ctx.fillRect(brick.x, brick.y, brickWidth, brickHeight);
+          }
+        }
+      }
+    }
+
+    function collisionDetection() {
+      for (let r = 0; r < brickRowCount; r++) {
+        for (let c = 0; c < brickColCount; c++) {
+          const brick = bricks[r][c];
+          if (brick.status === 1) {
+            if (
+              ball.x > brick.x &&
+              ball.x < brick.x + brickWidth &&
+              ball.y > brick.y &&
+              ball.y < brick.y + brickHeight
+            ) {
+              ball.dy = -ball.dy;
+              brick.status = 0;
+              score += 1;
+              updateScore();
+              if (score === brickRowCount * brickColCount) {
+                endGame(true);
+              }
+            }
+          }
+        }
+      }
+    }
+
+    function getPointerX(event) {
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      return (event.clientX - rect.left) * scaleX;
+    }
+
+    function update() {
+      if (running) {
+        if (rightPressed) {
+          paddle.x = Math.min(canvas.width - paddle.width, paddle.x + paddle.speed);
+        } else if (leftPressed) {
+          paddle.x = Math.max(0, paddle.x - paddle.speed);
+        }
+
+        ball.x += ball.dx;
+        ball.y += ball.dy;
+
+        if (ball.x + ball.radius > canvas.width || ball.x - ball.radius < 0) {
+          ball.dx = -ball.dx;
+        }
+        if (ball.y - ball.radius < 0) {
+          ball.dy = -ball.dy;
+        }
+
+        if (ball.y + ball.radius > canvas.height) {
+          endGame(false);
+        }
+
+        if (
+          ball.y + ball.radius >= paddle.y &&
+          ball.x > paddle.x &&
+          ball.x < paddle.x + paddle.width
+        ) {
+          ball.dy = -Math.abs(ball.dy);
+          const hitPoint = (ball.x - paddle.x) / paddle.width - 0.5;
+          ball.dx = hitPoint * 6;
+        }
+
+        collisionDetection();
+      }
+
+      draw();
+      requestAnimationFrame(update);
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      drawBricks();
+      drawPaddle();
+      drawBall();
+
+      ctx.fillStyle = '#e2e8f0';
+      ctx.font = '16px "Space Grotesk", sans-serif';
+      ctx.textAlign = 'center';
+
+      if (!running && !gameOver && !victory) {
+        ctx.fillText('Klikněte Start pro hru', canvas.width / 2, canvas.height / 2);
+      }
+      if (gameOver) {
+        ctx.fillText('Konec hry', canvas.width / 2, canvas.height / 2);
+      }
+      if (victory) {
+        ctx.fillText('Vyhráli jste!', canvas.width / 2, canvas.height / 2);
+      }
+    }
+
+    document.addEventListener('keydown', event => {
+      if (event.key === 'ArrowRight') {
+        rightPressed = true;
+        event.preventDefault();
+      }
+      if (event.key === 'ArrowLeft') {
+        leftPressed = true;
+        event.preventDefault();
+      }
+    });
+
+    document.addEventListener('keyup', event => {
+      if (event.key === 'ArrowRight') {
+        rightPressed = false;
+      }
+      if (event.key === 'ArrowLeft') {
+        leftPressed = false;
+      }
+    });
+
+    canvas.addEventListener('pointermove', event => {
+      const x = getPointerX(event) - paddle.width / 2;
+      paddle.x = Math.max(0, Math.min(canvas.width - paddle.width, x));
+    });
+
+    btnStart.addEventListener('click', () => {
+      startGame();
+    });
+
+    btnRestart.addEventListener('click', () => {
+      resetGame();
+      startGame();
+    });
+
+    resetGame();
+    update();
+  </script>
+</body>
+</html>

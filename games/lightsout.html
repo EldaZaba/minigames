@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Lights Out - Miniherní Web</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../assets/theme.css" />
+  <script src="../assets/theme.js" defer></script>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      padding: clamp(16px, 3vw, 32px);
+      gap: 1rem;
+    }
+    header {
+      text-align: center;
+    }
+    .game-shell {
+      width: min(92vw, 520px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+    .board {
+      width: min(90vw, 360px);
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .cell {
+      aspect-ratio: 1 / 1;
+      border-radius: 14px;
+      border: 1px solid var(--surface-border);
+      background: #0f172a;
+      box-shadow: var(--shadow-soft);
+      transition: transform 0.15s ease, background 0.2s ease;
+    }
+    .cell.on {
+      background: #fde047;
+      box-shadow: 0 0 0 4px rgba(252, 211, 77, 0.35);
+    }
+    .cell:active {
+      transform: scale(0.98);
+    }
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+    }
+    .status {
+      margin: 0;
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      text-align: center;
+    }
+    .link-back {
+      margin-top: 0.5rem;
+      color: var(--accent-3);
+      text-decoration: underline;
+      font-weight: 600;
+    }
+    .link-back:hover {
+      color: var(--accent);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1 class="hero-title">Lights Out</h1>
+    <p class="hero-subtitle">Zhasněte všechna světla přepínáním políček.</p>
+  </header>
+
+  <div class="panel game-shell" role="main" aria-label="Lights Out">
+    <div class="controls">
+      <button id="btnNew" class="btn">Nová hra</button>
+      <button id="btnReset" class="btn btn-secondary">Reset</button>
+    </div>
+    <div id="board" class="board" aria-label="Hrací plocha"></div>
+    <p id="status" class="status">Cíl: zhasnout všechna světla.</p>
+  </div>
+  <a href="../games.html" class="link-back">Zpět na výběr her</a>
+
+  <script>
+    const size = 5;
+    const boardEl = document.getElementById('board');
+    const statusEl = document.getElementById('status');
+    const btnNew = document.getElementById('btnNew');
+    const btnReset = document.getElementById('btnReset');
+
+    let board = [];
+    let initialBoard = [];
+
+    function createMatrix() {
+      return Array.from({ length: size }, () => Array.from({ length: size }, () => false));
+    }
+
+    function copyBoard(source) {
+      return source.map(row => row.slice());
+    }
+
+    function render() {
+      const cells = Array.from(boardEl.children);
+      cells.forEach(cell => {
+        const r = Number(cell.dataset.row);
+        const c = Number(cell.dataset.col);
+        if (board[r][c]) {
+          cell.classList.add('on');
+        } else {
+          cell.classList.remove('on');
+        }
+      });
+    }
+
+    function toggleCell(r, c) {
+      if (r < 0 || c < 0 || r >= size || c >= size) return;
+      board[r][c] = !board[r][c];
+    }
+
+    function handleClick(r, c) {
+      toggleCell(r, c);
+      toggleCell(r - 1, c);
+      toggleCell(r + 1, c);
+      toggleCell(r, c - 1);
+      toggleCell(r, c + 1);
+      render();
+      checkWin();
+    }
+
+    function checkWin() {
+      const allOff = board.flat().every(value => !value);
+      if (allOff) {
+        statusEl.textContent = 'Vyřešeno! Skvělá práce.';
+      } else {
+        statusEl.textContent = 'Cíl: zhasnout všechna světla.';
+      }
+    }
+
+    function randomizeBoard() {
+      board = createMatrix();
+      for (let r = 0; r < size; r++) {
+        for (let c = 0; c < size; c++) {
+          board[r][c] = Math.random() > 0.5;
+        }
+      }
+      if (board.flat().every(value => !value)) {
+        board[0][0] = true;
+      }
+      initialBoard = copyBoard(board);
+      render();
+      checkWin();
+    }
+
+    function resetBoard() {
+      board = copyBoard(initialBoard);
+      render();
+      checkWin();
+    }
+
+    function buildBoard() {
+      boardEl.innerHTML = '';
+      for (let r = 0; r < size; r++) {
+        for (let c = 0; c < size; c++) {
+          const cell = document.createElement('button');
+          cell.className = 'cell';
+          cell.dataset.row = r;
+          cell.dataset.col = c;
+          cell.setAttribute('aria-label', `Pole ${r + 1}-${c + 1}`);
+          cell.addEventListener('click', () => handleClick(r, c));
+          boardEl.appendChild(cell);
+        }
+      }
+    }
+
+    btnNew.addEventListener('click', () => {
+      randomizeBoard();
+    });
+
+    btnReset.addEventListener('click', () => {
+      resetBoard();
+    });
+
+    buildBoard();
+    randomizeBoard();
+  </script>
+</body>
+</html>

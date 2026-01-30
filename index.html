@@ -10,20 +10,16 @@
   <script src="assets/theme.js" defer></script>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet" />
 </head>
-<body class="landing">
-  <div class="app-shell hero">
-    <header class="hero-copy">
+<body class="landing-page">
+  <div class="app-shell">
+    <section class="panel landing-hero">
       <p class="eyebrow">Minihry CZ</p>
       <h1 class="hero-title">Vítejte na Minihry CZ Webu</h1>
       <p class="hero-subtitle">Klikněte na start a začněte hrát:</p>
-    </header>
-
-    <main class="hero-card text-center">
-      <h2 class="text-2xl font-bold mb-6">Vítejte na Minihry CZ Webu</h2>
       <button id="btnStart" class="btn w-full">
         <i class="fas fa-play mr-2"></i> Start
       </button>
-    </main>
+    </section>
   </div>
   <main id="gameList" class="panel hidden w-full max-w-4xl bg-white rounded-lg shadow-lg p-6 space-y-6">
     <h2 class="text-2xl font-bold mb-6 text-center">Vyberte si hru</h2>
@@ -73,12 +69,49 @@
         <h2 class="text-xl font-semibold mb-2">Šibenice (Hangman)</h2>
         <p class="text-gray-600 text-center">Hádejte slova dříve než se šibenice dokončí. (Solo)</p>
       </a>
+
+      <a href="games/flappybird.html" class="bg-white rounded-lg shadow p-6 flex flex-col items-center hover:shadow-lg transition">
+        <i class="fas fa-dove fa-3x text-sky-500 mb-4"></i>
+        <h2 class="text-xl font-semibold mb-2">Flappy Bird</h2>
+        <p class="text-gray-600 text-center">Proleťte mezi trubkami bez nárazu. (Solo)</p>
+      </a>
+      <a href="games/breakout.html" class="bg-white rounded-lg shadow p-6 flex flex-col items-center hover:shadow-lg transition">
+        <i class="fas fa-bullseye fa-3x text-amber-500 mb-4"></i>
+        <h2 class="text-xl font-semibold mb-2">Breakout</h2>
+        <p class="text-gray-600 text-center">Rozbijte všechny cihly a nenechte míček spadnout. (Solo)</p>
+      </a>
+      <a href="games/whackamole.html" class="bg-white rounded-lg shadow p-6 flex flex-col items-center hover:shadow-lg transition">
+        <i class="fas fa-hand-pointer fa-3x text-rose-500 mb-4"></i>
+        <h2 class="text-xl font-semibold mb-2">Whack-a-Mole</h2>
+        <p class="text-gray-600 text-center">Klikněte na krtka dřív, než zmizí. (Solo)</p>
+      </a>
+      <a href="games/lightsout.html" class="bg-white rounded-lg shadow p-6 flex flex-col items-center hover:shadow-lg transition">
+        <i class="fas fa-lightbulb fa-3x text-yellow-500 mb-4"></i>
+        <h2 class="text-xl font-semibold mb-2">Lights Out</h2>
+        <p class="text-gray-600 text-center">Zhasněte všechna světla přepínáním políček. (Solo)</p>
+      </a>
+      <a href="games/tetris.html" class="bg-white rounded-lg shadow p-6 flex flex-col items-center hover:shadow-lg transition">
+        <i class="fas fa-cubes fa-3x text-indigo-500 mb-4"></i>
+        <h2 class="text-xl font-semibold mb-2">Tetris</h2>
+        <p class="text-gray-600 text-center">Skládejte bloky a čistěte řádky. (Solo)</p>
+      </a>
     </div>
   </main>
 
   <footer class="mt-12 text-center text-gray-500 text-sm">
     &copy; 2026 Minihry CZ. Všechna práva vyhrazena.
   </footer>
+
+  <script data-name="BMC-Widget"
+    data-cfasync="false"
+    src="https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js"
+    data-id="eldazaba"
+    data-description="Podpořte mě na Buy Me a Coffee"
+    data-message="Díky za podporu!"
+    data-color="#FFDD00"
+    data-position="Right"
+    data-x_margin="18"
+    data-y_margin="18"></script>
 
   <script>
     document.getElementById('btnStart').addEventListener('click', () => {
