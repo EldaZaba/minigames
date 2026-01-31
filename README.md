@@ -1,4 +1,4 @@
-# Minihry CZ
+# Mě to nebaví CZ
 
 Jednoduchý web s minihrami v češtině. Otevřete `index.html` a můžete začít hrát.
 
