@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="cs">
 <head>
   <meta charset="UTF-8" />
@@ -112,14 +112,17 @@
     }
     bestEl.textContent = bestScore;
 
+    const baseFps = 60;
     const bird = { x: 90, y: canvas.height / 2, radius: 14, velocity: 0 };
-    const gravity = 0.4;
-    const flapStrength = -7.5;
+    const gravity = 0.4 * baseFps * baseFps;
+    const flapStrength = -7.5 * baseFps;
     const pipeWidth = 62;
     const pipeGap = 150;
-    const pipeSpeed = 2.2;
+    const pipeSpeed = 2.2 * baseFps;
+    const spawnInterval = 90 / baseFps;
     const pipes = [];
-    let spawnCounter = 0;
+    let spawnTimer = 0;
+    let lastTime = 0;
 
     let score = 0;
     let running = false;
@@ -145,11 +148,12 @@
       bird.y = canvas.height / 2;
       bird.velocity = 0;
       pipes.length = 0;
-      spawnCounter = 0;
+      spawnTimer = 0;
       score = 0;
       running = false;
       gameOver = false;
       started = false;
+      lastTime = 0;
       updateScore();
     }
 
@@ -183,19 +187,23 @@
       bird.velocity = flapStrength;
     }
 
-    function update() {
-      if (running) {
-        bird.velocity += gravity;
-        bird.y += bird.velocity;
-        spawnCounter += 1;
+    function update(time = 0) {
+      if (!lastTime) lastTime = time;
+      const delta = Math.min((time - lastTime) / 1000, 0.05);
+      lastTime = time;
 
-        if (spawnCounter > 90) {
+      if (running) {
+        bird.velocity += gravity * delta;
+        bird.y += bird.velocity * delta;
+        spawnTimer += delta;
+
+        if (spawnTimer > spawnInterval) {
           spawnPipe();
-          spawnCounter = 0;
+          spawnTimer = 0;
         }
 
         pipes.forEach(pipe => {
-          pipe.x -= pipeSpeed;
+          pipe.x -= pipeSpeed * delta;
         });
 
         while (pipes.length && pipes[0].x + pipeWidth < -10) {

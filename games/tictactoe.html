@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="cs">
 <head>
   <meta charset="UTF-8" />
@@ -11,57 +11,69 @@
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet" />
   <style>
     body {
-      font-family: 'Roboto', sans-serif;
-      background-color: #f3f4f6;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      padding: clamp(16px, 3vw, 32px);
+      gap: 1rem;
+    }
+    header {
+      text-align: center;
     }
     #gameBoard {
+      width: min(90vw, 320px);
       display: grid;
-      grid-template-columns: repeat(3, 100px);
-      grid-template-rows: repeat(3, 100px);
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 10px;
       justify-content: center;
-      margin: 2rem auto;
     }
     .cell {
-      background-color: white;
-      border-radius: 8px;
-      box-shadow: 0 0 5px #ccc;
+      aspect-ratio: 1 / 1;
+      background: var(--surface);
+      border-radius: 14px;
+      border: 1px solid var(--surface-border);
+      box-shadow: var(--shadow-soft);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 48px;
+      font-size: clamp(2.4rem, 10vw, 3.4rem);
       cursor: pointer;
       user-select: none;
-      transition: background-color 0.3s;
+      transition: background-color 0.2s ease, transform 0.2s ease;
     }
     .cell:hover {
-      background-color: #e0e7ff;
+      background-color: var(--surface-2);
+    }
+    .cell:active {
+      transform: scale(0.98);
     }
   </style>
 </head>
-<body class="flex flex-col items-center min-h-screen p-4">
-  <header class="mb-6 text-center">
-    <h1 class="text-4xl font-bold text-blue-600 mb-2">Piškvorky (Tic Tac Toe)</h1>
-    <p class="text-gray-700">Hrajte proti kamarádovi nebo sami.</p>
+<body class="game-page">
+  <header>
+    <h1 class="hero-title">Piškvorky</h1>
+    <p class="hero-subtitle">Hrajte proti kamarádovi nebo sami.</p>
   </header>
 
-  <div id="gameBoard" role="grid" aria-label="Piškvorky hra">
-    <!-- 9 cells -->
-    <div class="cell" data-index="0" role="gridcell" aria-label="Pole 1"></div>
-    <div class="cell" data-index="1" role="gridcell" aria-label="Pole 2"></div>
-    <div class="cell" data-index="2" role="gridcell" aria-label="Pole 3"></div>
-    <div class="cell" data-index="3" role="gridcell" aria-label="Pole 4"></div>
-    <div class="cell" data-index="4" role="gridcell" aria-label="Pole 5"></div>
-    <div class="cell" data-index="5" role="gridcell" aria-label="Pole 6"></div>
-    <div class="cell" data-index="6" role="gridcell" aria-label="Pole 7"></div>
-    <div class="cell" data-index="7" role="gridcell" aria-label="Pole 8"></div>
-    <div class="cell" data-index="8" role="gridcell" aria-label="Pole 9"></div>
+  <div class="panel game-shell" role="main" aria-label="Piškvorky">
+    <div id="gameBoard" role="grid" aria-label="Piškvorky hra">
+      <!-- 9 cells -->
+      <div class="cell" data-index="0" role="gridcell" aria-label="Pole 1"></div>
+      <div class="cell" data-index="1" role="gridcell" aria-label="Pole 2"></div>
+      <div class="cell" data-index="2" role="gridcell" aria-label="Pole 3"></div>
+      <div class="cell" data-index="3" role="gridcell" aria-label="Pole 4"></div>
+      <div class="cell" data-index="4" role="gridcell" aria-label="Pole 5"></div>
+      <div class="cell" data-index="5" role="gridcell" aria-label="Pole 6"></div>
+      <div class="cell" data-index="6" role="gridcell" aria-label="Pole 7"></div>
+      <div class="cell" data-index="7" role="gridcell" aria-label="Pole 8"></div>
+      <div class="cell" data-index="8" role="gridcell" aria-label="Pole 9"></div>
+    </div>
+    <div class="controls">
+      <button id="btnRestart" class="btn btn-secondary">Restart</button>
+    </div>
   </div>
-
-  <div class="mt-6 space-x-4">
-    <button id="btnRestart" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">Restartovat hru</button>
-    <a href="../games.html" class="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition">Zpět na výběr her</a>
-  </div>
+  <a href="../games.html" class="link-back">Zpět na výběr her</a>
 
   <script>
     const cells = document.querySelectorAll('.cell');

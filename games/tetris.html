@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="cs">
 <head>
   <meta charset="UTF-8" />
@@ -43,6 +43,27 @@
       border: 1px solid var(--surface-border);
       font-weight: 600;
       color: var(--text);
+    }
+    .next-panel {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .next-label {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    #nextCanvas {
+      width: clamp(72px, 20vw, 96px);
+      height: auto;
+      aspect-ratio: 1 / 1;
+      border-radius: 14px;
+      border: 1px solid var(--surface-border);
+      background: #0f172a;
+      box-shadow: var(--shadow-soft);
     }
     #tetrisCanvas {
       width: min(90vw, 280px);
@@ -106,6 +127,10 @@
         <button id="btnStart" class="btn">Start</button>
         <button id="btnRestart" class="btn btn-secondary">Restart</button>
       </div>
+      <div class="next-panel" aria-label="Další blok">
+        <div class="next-label">Další</div>
+        <canvas id="nextCanvas" width="96" height="96" aria-label="Další blok"></canvas>
+      </div>
     </div>
     <canvas id="tetrisCanvas" width="240" height="480" aria-label="Tetris"></canvas>
     <div class="control-pad" aria-label="Ovládání">
@@ -122,6 +147,8 @@
   <script>
     const canvas = document.getElementById('tetrisCanvas');
     const ctx = canvas.getContext('2d');
+    const nextCanvas = document.getElementById('nextCanvas');
+    const nextCtx = nextCanvas.getContext('2d');
     const scoreEl = document.getElementById('score');
     const btnStart = document.getElementById('btnStart');
     const btnRestart = document.getElementById('btnRestart');
@@ -174,6 +201,7 @@
 
     let board = createMatrix();
     let current = null;
+    let nextPiece = null;
     let currentPos = { x: 0, y: 0 };
     let dropCounter = 0;
     let dropInterval = 600;
@@ -190,26 +218,36 @@
       scoreEl.textContent = score;
     }
 
+    function createPiece() {
+      const keys = Object.keys(shapes);
+      const key = keys[Math.floor(Math.random() * keys.length)];
+      return shapes[key].map(row => row.slice());
+    }
+
     function resetGame() {
       board = createMatrix();
       score = 0;
       running = false;
       gameOver = false;
       current = null;
+      nextPiece = createPiece();
       updateScore();
       spawnPiece();
     }
 
     function spawnPiece() {
-      const keys = Object.keys(shapes);
-      const key = keys[Math.floor(Math.random() * keys.length)];
-      current = shapes[key].map(row => row.slice());
+      if (!nextPiece) {
+        nextPiece = createPiece();
+      }
+      current = nextPiece;
+      nextPiece = createPiece();
       currentPos.y = 0;
       currentPos.x = Math.floor((cols - current[0].length) / 2);
       if (collide(board, current, currentPos)) {
         gameOver = true;
         running = false;
       }
+      drawPreview();
     }
 
     function collide(matrix, piece, pos) {
@@ -305,6 +343,32 @@
           if (value !== 0) {
             ctx.fillStyle = colors[value];
             ctx.fillRect((x + offset.x) * blockSize, (y + offset.y) * blockSize, blockSize - 1, blockSize - 1);
+          }
+        }
+      }
+    }
+
+    function drawPreview() {
+      nextCtx.fillStyle = '#0f172a';
+      nextCtx.fillRect(0, 0, nextCanvas.width, nextCanvas.height);
+      if (!nextPiece) return;
+
+      const previewSize = 4;
+      const block = nextCanvas.width / previewSize;
+      const offsetX = Math.floor((previewSize - nextPiece[0].length) / 2);
+      const offsetY = Math.floor((previewSize - nextPiece.length) / 2);
+
+      for (let y = 0; y < nextPiece.length; y++) {
+        for (let x = 0; x < nextPiece[y].length; x++) {
+          const value = nextPiece[y][x];
+          if (value !== 0) {
+            nextCtx.fillStyle = colors[value];
+            nextCtx.fillRect(
+              (x + offsetX) * block,
+              (y + offsetY) * block,
+              block - 1,
+              block - 1
+            );
           }
         }
       }

@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="cs">
 <head>
   <meta charset="UTF-8" />
@@ -102,20 +102,25 @@
     const btnStart = document.getElementById('btnStart');
     const btnRestart = document.getElementById('btnRestart');
 
+    const baseFps = 60;
+    const paddleSpeed = 6 * baseFps;
+    const ballSpeed = 2.6 * baseFps;
+    const maxBounceSpeed = 6 * baseFps;
+
     const paddle = {
       width: 90,
       height: 12,
       x: 0,
       y: canvas.height - 24,
-      speed: 6,
+      speed: paddleSpeed,
     };
 
     const ball = {
       x: canvas.width / 2,
       y: canvas.height - 40,
       radius: 8,
-      dx: 2.6,
-      dy: -2.6,
+      dx: ballSpeed,
+      dy: -ballSpeed,
     };
 
     const brickRowCount = 5;
@@ -133,6 +138,7 @@
     let victory = false;
     let rightPressed = false;
     let leftPressed = false;
+    let lastTime = 0;
 
     function initBricks() {
       bricks = [];
@@ -154,14 +160,15 @@
       paddle.x = (canvas.width - paddle.width) / 2;
       ball.x = canvas.width / 2;
       ball.y = canvas.height - 40;
-      ball.dx = 2.6;
-      ball.dy = -2.6;
+      ball.dx = ballSpeed;
+      ball.dy = -ballSpeed;
       score = 0;
       running = false;
       gameOver = false;
       victory = false;
       rightPressed = false;
       leftPressed = false;
+      lastTime = 0;
       initBricks();
       updateScore();
     }
@@ -233,22 +240,34 @@
       return (event.clientX - rect.left) * scaleX;
     }
 
-    function update() {
+    function update(time = 0) {
+      if (!lastTime) lastTime = time;
+      const delta = Math.min((time - lastTime) / 1000, 0.05);
+      lastTime = time;
+
       if (running) {
-        if (rightPressed) {
-          paddle.x = Math.min(canvas.width - paddle.width, paddle.x + paddle.speed);
-        } else if (leftPressed) {
-          paddle.x = Math.max(0, paddle.x - paddle.speed);
+        let moveDir = 0;
+        if (rightPressed) moveDir += 1;
+        if (leftPressed) moveDir -= 1;
+        if (moveDir !== 0) {
+          paddle.x += moveDir * paddle.speed * delta;
+          paddle.x = Math.max(0, Math.min(canvas.width - paddle.width, paddle.x));
         }
 
-        ball.x += ball.dx;
-        ball.y += ball.dy;
+        ball.x += ball.dx * delta;
+        ball.y += ball.dy * delta;
 
-        if (ball.x + ball.radius > canvas.width || ball.x - ball.radius < 0) {
-          ball.dx = -ball.dx;
+        if (ball.x + ball.radius > canvas.width) {
+          ball.x = canvas.width - ball.radius;
+          ball.dx = -Math.abs(ball.dx);
+        } else if (ball.x - ball.radius < 0) {
+          ball.x = ball.radius;
+          ball.dx = Math.abs(ball.dx);
         }
+
         if (ball.y - ball.radius < 0) {
-          ball.dy = -ball.dy;
+          ball.y = ball.radius;
+          ball.dy = Math.abs(ball.dy);
         }
 
         if (ball.y + ball.radius > canvas.height) {
@@ -257,12 +276,14 @@
 
         if (
           ball.y + ball.radius >= paddle.y &&
+          ball.y + ball.radius <= paddle.y + paddle.height &&
           ball.x > paddle.x &&
           ball.x < paddle.x + paddle.width
         ) {
+          ball.y = paddle.y - ball.radius;
           ball.dy = -Math.abs(ball.dy);
           const hitPoint = (ball.x - paddle.x) / paddle.width - 0.5;
-          ball.dx = hitPoint * 6;
+          ball.dx = hitPoint * maxBounceSpeed;
         }
 
         collisionDetection();

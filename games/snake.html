@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="cs">
 <head>
   <meta charset="UTF-8" />
@@ -11,221 +11,361 @@
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet" />
   <style>
     body {
-      font-family: 'Roboto', sans-serif;
-      background-color: #f3f4f6;
       display: flex;
       flex-direction: column;
       align-items: center;
       min-height: 100vh;
-      padding: 1rem;
+      padding: clamp(16px, 3vw, 32px);
+      gap: 1rem;
     }
-    #gameCanvas {
-      background-color: #111827;
-      display: block;
-      margin: 0 auto;
-      border-radius: 8px;
-      max-width: 90vw;
-      max-height: 90vw;
-      width: 400px;
-      height: 400px;
+    header {
+      text-align: center;
+    }
+    #snakeCanvas {
+      width: min(90vw, 360px);
+      height: auto;
+      aspect-ratio: 1 / 1;
+      border-radius: 18px;
+      border: 1px solid var(--surface-border);
+      box-shadow: var(--shadow-soft);
+      background: #0f172a;
+      touch-action: none;
+    }
+    .control-pad {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      width: min(260px, 80vw);
+    }
+    .control-btn {
+      background: var(--surface);
+      border: 1px solid var(--surface-border);
+      border-radius: 14px;
+      padding: 0.6rem;
+      font-size: 1.05rem;
+      color: var(--text);
+      box-shadow: var(--shadow-soft);
+    }
+    .control-btn:active {
+      transform: translateY(1px);
+    }
+    .control-spacer {
+      pointer-events: none;
+      opacity: 0;
     }
   </style>
 </head>
-<body>
-  <header class="mb-6 text-center">
-    <h1 class="text-4xl font-bold text-green-600 mb-2">Had (Snake)</h1>
-    <p class="text-gray-700">Ovládejte hada pomocí šipek na klávesnici nebo dotykem na mobilu.</p>
+<body class="game-page">
+  <header>
+    <h1 class="hero-title">Had</h1>
+    <p class="hero-subtitle">Sbírejte jídlo a rostte bez nárazu.</p>
   </header>
 
-  <canvas id="gameCanvas" width="400" height="400" class="shadow-lg" aria-label="Had hra"></canvas>
-
-  <div class="mt-6 space-x-4 text-center">
-    <button id="btnStart" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition">Start</button>
-    <button id="btnRestart" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition ml-4" disabled>Restartovat hru</button>
-    <br />
-    <a href="../games.html" class="inline-block mt-4 px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition">Zpět na výběr her</a>
+  <div class="panel game-shell" role="main" aria-label="Had">
+    <div class="hud">
+      <div class="score-pill">Skóre: <span id="score">0</span></div>
+      <div class="score-pill">Nejlepší: <span id="bestScore">0</span></div>
+      <div class="score-pill">Rychlost: <span id="speed">1</span>x</div>
+    </div>
+    <canvas id="snakeCanvas" width="400" height="400" aria-label="Had hra"></canvas>
+    <div class="controls">
+      <button id="btnStart" class="btn">Start</button>
+      <button id="btnRestart" class="btn btn-secondary">Restart</button>
+    </div>
+    <div class="control-pad" aria-label="Ovládání">
+      <span class="control-spacer"></span>
+      <button class="control-btn" data-action="up" aria-label="Nahoru">↑</button>
+      <span class="control-spacer"></span>
+      <button class="control-btn" data-action="left" aria-label="Doleva">←</button>
+      <span class="control-spacer"></span>
+      <button class="control-btn" data-action="right" aria-label="Doprava">→</button>
+      <span class="control-spacer"></span>
+      <button class="control-btn" data-action="down" aria-label="Dolů">↓</button>
+      <span class="control-spacer"></span>
+    </div>
+    <p class="hint">Ovládání: šipky / WASD nebo swipe na ploše.</p>
   </div>
+  <a href="../games.html" class="link-back">Zpět na výběr her</a>
 
   <script>
-    const canvas = document.getElementById('gameCanvas');
+    const canvas = document.getElementById('snakeCanvas');
     const ctx = canvas.getContext('2d');
+    const scoreEl = document.getElementById('score');
+    const bestEl = document.getElementById('bestScore');
+    const speedEl = document.getElementById('speed');
+    const btnStart = document.getElementById('btnStart');
+    const btnRestart = document.getElementById('btnRestart');
+    const controlButtons = document.querySelectorAll('[data-action]');
+
     const gridSize = 20;
-    const tileCount = canvas.width / gridSize;
+    const cells = canvas.width / gridSize;
 
-    let snake = [{x: 10, y: 10}];
-    let velocity = {x: 0, y: 0};
-    let food = {x: 15, y: 15};
+    const directionMap = {
+      up: { x: 0, y: -1 },
+      down: { x: 0, y: 1 },
+      left: { x: -1, y: 0 },
+      right: { x: 1, y: 0 },
+    };
+
+    let snake = [];
+    let direction = { x: 1, y: 0 };
+    let nextDirection = { x: 1, y: 0 };
+    let food = { x: 0, y: 0 };
     let score = 0;
+    let bestScore = 0;
+    let running = false;
     let gameOver = false;
-    let gameLoopInterval;
-    let gameStarted = false;
+    let lastTime = 0;
+    let accumulator = 0;
+    let stepInterval = 200;
+    let speedLevel = 1;
 
-    function drawRect(x, y, color) {
-      ctx.fillStyle = color;
-      ctx.fillRect(x * gridSize, y * gridSize, gridSize - 2, gridSize - 2);
+    try {
+      bestScore = parseInt(localStorage.getItem('snake-best') || '0', 10);
+    } catch (error) {
+      bestScore = 0;
+    }
+    bestEl.textContent = bestScore;
+
+    function updateScore() {
+      scoreEl.textContent = score;
+    }
+
+    function updateSpeed() {
+      speedEl.textContent = speedLevel;
+    }
+
+    function updateBest() {
+      if (score <= bestScore) return;
+      bestScore = score;
+      bestEl.textContent = bestScore;
+      try {
+        localStorage.setItem('snake-best', String(bestScore));
+      } catch (error) {
+        // ignore storage errors
+      }
+    }
+
+    function setSpeedFromScore() {
+      speedLevel = Math.min(10, 1 + Math.floor(score / 4));
+      stepInterval = Math.max(80, 220 - speedLevel * 14);
+      updateSpeed();
+    }
+
+    function randomCell() {
+      return Math.floor(Math.random() * cells);
+    }
+
+    function placeFood() {
+      let position = { x: randomCell(), y: randomCell() };
+      while (snake.some(segment => segment.x === position.x && segment.y === position.y)) {
+        position = { x: randomCell(), y: randomCell() };
+      }
+      food = position;
     }
 
     function resetGame() {
-      snake = [{x: 10, y: 10}];
-      velocity = {x: 0, y: 0};
-      food = {x: Math.floor(Math.random() * tileCount), y: Math.floor(Math.random() * tileCount)};
+      snake = [
+        { x: 10, y: 10 },
+        { x: 9, y: 10 },
+        { x: 8, y: 10 },
+      ];
+      direction = { x: 1, y: 0 };
+      nextDirection = { x: 1, y: 0 };
       score = 0;
+      running = false;
       gameOver = false;
-      gameStarted = false;
-      clearInterval(gameLoopInterval);
-      draw();
-      document.getElementById('btnStart').disabled = false;
-      document.getElementById('btnRestart').disabled = true;
+      lastTime = 0;
+      accumulator = 0;
+      setSpeedFromScore();
+      placeFood();
+      updateScore();
     }
 
     function startGame() {
-      if (gameStarted) return;
-      gameStarted = true;
-      document.getElementById('btnStart').disabled = true;
-      document.getElementById('btnRestart').disabled = false;
-      velocity = {x: 0, y: 0};
-      // Start countdown before game loop
-      let countdown = 3;
-      const countdownInterval = setInterval(() => {
-        ctx.fillStyle = '#111827';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = 'white';
-        ctx.font = '60px Roboto, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText(countdown > 0 ? countdown : 'Start!', canvas.width / 2, canvas.height / 2);
-        if (countdown === 0) {
-          clearInterval(countdownInterval);
-          velocity = {x: 1, y: 0}; // Start moving right by default
-          gameLoopInterval = setInterval(gameLoop, 200);
-        } else {
-          countdown--;
-        }
-      }, 1000);
+      if (gameOver) {
+        resetGame();
+      }
+      if (!running) {
+        running = true;
+      }
     }
 
-    function gameLoop() {
-      if (gameOver) {
-        ctx.fillStyle = 'white';
-        ctx.font = '20px Roboto, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText('Konec hry! Skóre: ' + score, canvas.width / 2, canvas.height / 2);
-        clearInterval(gameLoopInterval);
+    function setDirection(action) {
+      const dir = directionMap[action];
+      if (!dir) return;
+      if (dir.x === -direction.x && dir.y === -direction.y) return;
+      nextDirection = dir;
+      if (!running && !gameOver) {
+        startGame();
+      }
+    }
+
+    function step() {
+      direction = nextDirection;
+      const head = {
+        x: snake[0].x + direction.x,
+        y: snake[0].y + direction.y,
+      };
+
+      if (head.x < 0 || head.x >= cells || head.y < 0 || head.y >= cells) {
+        gameOver = true;
+        running = false;
+        updateBest();
         return;
       }
 
-      // Move snake
-      const head = {x: snake[0].x + velocity.x, y: snake[0].y + velocity.y};
-
-      // Check wall collision
-      if (head.x < 0 || head.x >= tileCount || head.y < 0 || head.y >= tileCount) {
+      if (snake.some(segment => segment.x === head.x && segment.y === head.y)) {
         gameOver = true;
-      }
-
-      // Check self collision
-      for (let segment of snake) {
-        if (segment.x === head.x && segment.y === head.y) {
-          gameOver = true;
-        }
-      }
-
-      if (gameOver) {
-        draw();
+        running = false;
+        updateBest();
         return;
       }
 
       snake.unshift(head);
 
-      // Check food collision
       if (head.x === food.x && head.y === food.y) {
-        score++;
-        food = {x: Math.floor(Math.random() * tileCount), y: Math.floor(Math.random() * tileCount)};
+        score += 1;
+        updateScore();
+        updateBest();
+        setSpeedFromScore();
+        placeFood();
       } else {
         snake.pop();
       }
+    }
 
-      draw();
+    function drawGrid() {
+      ctx.strokeStyle = 'rgba(148, 163, 184, 0.08)';
+      for (let x = 0; x <= cells; x++) {
+        ctx.beginPath();
+        ctx.moveTo(x * gridSize, 0);
+        ctx.lineTo(x * gridSize, canvas.height);
+        ctx.stroke();
+      }
+      for (let y = 0; y <= cells; y++) {
+        ctx.beginPath();
+        ctx.moveTo(0, y * gridSize);
+        ctx.lineTo(canvas.width, y * gridSize);
+        ctx.stroke();
+      }
     }
 
     function draw() {
-      ctx.fillStyle = '#111827';
+      ctx.fillStyle = '#0f172a';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
+      drawGrid();
 
-      drawRect(food.x, food.y, 'red');
-      for (let segment of snake) {
-        drawRect(segment.x, segment.y, 'limegreen');
+      const padding = 2;
+
+      ctx.fillStyle = '#f97316';
+      ctx.fillRect(
+        food.x * gridSize + padding,
+        food.y * gridSize + padding,
+        gridSize - padding * 2,
+        gridSize - padding * 2
+      );
+
+      snake.forEach((segment, index) => {
+        ctx.fillStyle = index === 0 ? '#38bdf8' : '#22c55e';
+        ctx.fillRect(
+          segment.x * gridSize + padding,
+          segment.y * gridSize + padding,
+          gridSize - padding * 2,
+          gridSize - padding * 2
+        );
+      });
+
+      ctx.fillStyle = '#e2e8f0';
+      ctx.font = '16px "Space Grotesk", sans-serif';
+      ctx.textAlign = 'center';
+
+      if (!running && !gameOver) {
+        ctx.fillText('Klikněte start', canvas.width / 2, canvas.height / 2);
       }
-
-      // Draw score
-      ctx.fillStyle = 'white';
-      ctx.font = '16px Roboto, sans-serif';
-      ctx.textAlign = 'left';
-      ctx.fillText('Skóre: ' + score, 10, 20);
+      if (gameOver) {
+        ctx.fillText('Konec hry', canvas.width / 2, canvas.height / 2 - 10);
+        ctx.fillText('Klikněte restart', canvas.width / 2, canvas.height / 2 + 16);
+      }
     }
 
-    document.addEventListener('keydown', e => {
-      if (!gameStarted) return;
-      switch(e.key) {
-        case 'ArrowUp':
-          if (velocity.y === 1) break;
-          velocity = {x: 0, y: -1};
-          break;
-        case 'ArrowDown':
-          if (velocity.y === -1) break;
-          velocity = {x: 0, y: 1};
-          break;
-        case 'ArrowLeft':
-          if (velocity.x === 1) break;
-          velocity = {x: -1, y: 0};
-          break;
-        case 'ArrowRight':
-          if (velocity.x === -1) break;
-          velocity = {x: 1, y: 0};
-          break;
-      }
-    });
+    function update(time = 0) {
+      if (!lastTime) lastTime = time;
+      const delta = time - lastTime;
+      lastTime = time;
 
-    // Touch controls for mobile
-    let touchStartX = null;
-    let touchStartY = null;
-
-    canvas.addEventListener('touchstart', e => {
-      const touch = e.touches[0];
-      touchStartX = touch.clientX;
-      touchStartY = touch.clientY;
-    });
-
-    canvas.addEventListener('touchmove', e => {
-      if (!touchStartX || !touchStartY) return;
-      const touch = e.touches[0];
-      const diffX = touch.clientX - touchStartX;
-      const diffY = touch.clientY - touchStartY;
-
-      if (Math.abs(diffX) > Math.abs(diffY)) {
-        if (diffX > 0 && velocity.x !== -1) {
-          velocity = {x: 1, y: 0};
-        } else if (diffX < 0 && velocity.x !== 1) {
-          velocity = {x: -1, y: 0};
+      if (running && !gameOver) {
+        accumulator += delta;
+        while (accumulator >= stepInterval) {
+          step();
+          accumulator -= stepInterval;
+          if (gameOver) break;
         }
+      }
+
+      draw();
+      requestAnimationFrame(update);
+    }
+
+    document.addEventListener('keydown', event => {
+      const keyMap = {
+        ArrowUp: 'up',
+        ArrowDown: 'down',
+        ArrowLeft: 'left',
+        ArrowRight: 'right',
+        w: 'up',
+        s: 'down',
+        a: 'left',
+        d: 'right',
+      };
+      const action = keyMap[event.key];
+      if (!action) return;
+      event.preventDefault();
+      setDirection(action);
+    });
+
+    controlButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        setDirection(button.dataset.action);
+      });
+    });
+
+    let pointerStart = null;
+    const swipeThreshold = 18;
+
+    canvas.addEventListener('pointerdown', event => {
+      pointerStart = { x: event.clientX, y: event.clientY };
+      canvas.setPointerCapture(event.pointerId);
+    });
+
+    canvas.addEventListener('pointerup', event => {
+      if (!pointerStart) return;
+      const dx = event.clientX - pointerStart.x;
+      const dy = event.clientY - pointerStart.y;
+      pointerStart = null;
+      if (Math.max(Math.abs(dx), Math.abs(dy)) < swipeThreshold) return;
+      if (Math.abs(dx) > Math.abs(dy)) {
+        setDirection(dx > 0 ? 'right' : 'left');
       } else {
-        if (diffY > 0 && velocity.y !== -1) {
-          velocity = {x: 0, y: 1};
-        } else if (diffY < 0 && velocity.y !== 1) {
-          velocity = {x: 0, y: -1};
-        }
+        setDirection(dy > 0 ? 'down' : 'up');
       }
-      touchStartX = null;
-      touchStartY = null;
     });
 
-    document.getElementById('btnStart').addEventListener('click', () => {
+    canvas.addEventListener('pointercancel', () => {
+      pointerStart = null;
+    });
+
+    btnStart.addEventListener('click', () => {
       startGame();
     });
 
-    document.getElementById('btnRestart').addEventListener('click', () => {
+    btnRestart.addEventListener('click', () => {
       resetGame();
+      startGame();
     });
 
     resetGame();
+    update();
   </script>
 </body>
 </html>

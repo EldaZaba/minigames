@@ -21,10 +21,6 @@
     header {
       text-align: center;
     }
-    h1 {
-      color: var(--accent-2);
-      margin-bottom: 0.35rem;
-    }
     #gameContainer {
       width: min(92vw, 520px);
     }
@@ -108,15 +104,6 @@
       pointer-events: none;
       opacity: 0;
     }
-    .link-back {
-      margin-top: 1rem;
-      color: var(--accent-3);
-      text-decoration: underline;
-      font-weight: 600;
-    }
-    .link-back:hover {
-      color: var(--accent);
-    }
     @media (max-width: 480px) {
       .hud {
         flex-direction: column;
@@ -128,13 +115,13 @@
     }
   </style>
 </head>
-<body>
+<body class="game-page">
   <header>
     <h1 class="hero-title">2048</h1>
     <p class="hero-subtitle">Spojujte čísla a dosáhněte čísla 2048.</p>
   </header>
 
-  <div id="gameContainer" class="panel" role="main" aria-label="Hra 2048">
+  <div id="gameContainer" class="panel game-shell" role="main" aria-label="Hra 2048">
     <div class="hud">
       <div id="score" class="score-pill">Skóre: 0</div>
       <button id="btnRestart" class="btn btn-secondary">Restartovat hru</button>
@@ -151,8 +138,8 @@
       <button class="control-btn" type="button" data-move="down" aria-label="Dolů">&darr;</button>
       <span class="control-spacer"></span>
     </div>
-    <a href="../games.html" class="link-back">Zpět na výběr her</a>
-  </div>
+</div>
+<a href="../games.html" class="link-back">Zpět na výběr her</a>
 
   <script>
     const gridSize = 4;

@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="cs">
 <head>
   <meta charset="UTF-8" />
@@ -11,77 +11,81 @@
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet" />
   <style>
     body {
-      font-family: 'Roboto', sans-serif;
-      background-color: #f3f4f6;
       display: flex;
       flex-direction: column;
       align-items: center;
       min-height: 100vh;
-      padding: 1rem;
+      padding: clamp(16px, 3vw, 32px);
+      gap: 1rem;
+    }
+    header {
+      text-align: center;
     }
     #wordDisplay {
-      font-size: 2rem;
-      letter-spacing: 0.3rem;
-      margin: 2rem 0;
+      font-size: clamp(1.6rem, 4vw, 2.2rem);
+      letter-spacing: 0.35rem;
+      margin: 0.5rem 0 0.75rem;
       user-select: none;
+      color: var(--text);
     }
     #letters {
-      display: flex;
-      flex-wrap: wrap;
-      max-width: 400px;
-      justify-content: center;
-      gap: 10px;
+      width: min(92vw, 420px);
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(36px, 1fr));
+      gap: 8px;
+      justify-items: center;
     }
     .letter {
-      background-color: white;
-      border-radius: 6px;
-      box-shadow: 0 0 5px #ccc;
       width: 40px;
       height: 40px;
+      background: var(--surface);
+      border: 1px solid var(--surface-border);
+      border-radius: 10px;
+      box-shadow: var(--shadow-soft);
       display: flex;
       align-items: center;
       justify-content: center;
       font-weight: 700;
-      font-size: 1.5rem;
+      font-size: 1.2rem;
       cursor: pointer;
       user-select: none;
-      transition: background-color 0.3s;
+      transition: transform 0.15s ease, background-color 0.2s ease;
+    }
+    .letter:active {
+      transform: translateY(1px);
     }
     .letter.used {
-      background-color: #9ca3af;
+      background: var(--surface-2);
       cursor: default;
-      color: #6b7280;
+      color: var(--text-muted);
+      box-shadow: none;
     }
     #status {
-      margin-top: 1rem;
-      font-weight: 700;
-      font-size: 1.2rem;
       min-height: 2rem;
-      color: #374151;
+      font-weight: 600;
+      font-size: 1rem;
     }
   </style>
 </head>
-<body>
-  <header class="text-center">
-    <h1 class="text-4xl font-bold text-green-700 mb-2">Šibenice (Hangman)</h1>
-    <p class="text-gray-700">Hádejte slova dříve než se šibenice dokončí.</p>
+<body class="game-page">
+  <header>
+    <h1 class="hero-title">Šibenice</h1>
+    <p class="hero-subtitle">Hádejte slova dříve než se šibenice dokončí.</p>
   </header>
 
   <!--<div id="hangmanImage" class="mb-4 text-center">
     <img src="https://upload.wikimedia.org/wikipedia/commons/7/7a/Hangman-0.png" alt="Šibenice" id="hangmanImg" class="mx-auto" style="max-width: 200px;" />
   </div>-->
 
-  <div id="wordDisplay" aria-label="Zobrazované slovo"></div>
-
-  <div id="letters" role="group" aria-label="Písmena k výběru"></div>
-
-  <div id="status" aria-live="polite"></div>
-
-  <div class="mt-6 space-x-4 text-center">
-    <button id="btnRestart" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition">Restartovat hru</button>
-    <br />
-    <a href="../games.html" class="inline-block mt-4 px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition">Zpět na výběr her</a>
+  <div class="panel game-shell" role="main" aria-label="Šibenice">
+    <div id="wordDisplay" aria-label="Zobrazované slovo"></div>
+    <div id="letters" role="group" aria-label="Písmena k výběru"></div>
+    <p id="status" class="status" aria-live="polite"></p>
+    <div class="controls">
+      <button id="btnRestart" class="btn btn-secondary">Restart</button>
+    </div>
   </div>
+  <a href="../games.html" class="link-back">Zpět na výběr her</a>
 
   <script>
     const words = ['auto', 'dům', 'pes', 'kočka', 'strom', 'kolo', 'hra', 'slovo', 'mír', 'les', 'ryba', 'hora', 'zámek', 'most', 'vlak', 'kniha', 'okno', 'květina', 'pták', 'řeka'];

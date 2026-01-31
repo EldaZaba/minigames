@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="cs">
 <head>
   <meta charset="UTF-8" />
@@ -11,51 +11,65 @@
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet" />
   <style>
     body {
-      font-family: 'Roboto', sans-serif;
-      background-color: #f3f4f6;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      padding: clamp(16px, 3vw, 32px);
+      gap: 1rem;
+    }
+    header {
+      text-align: center;
     }
     .choices {
       display: flex;
       justify-content: center;
-      gap: 2rem;
-      margin: 2rem 0;
+      gap: 12px;
+      flex-wrap: wrap;
     }
     .choice {
+      width: clamp(70px, 20vw, 96px);
+      height: clamp(70px, 20vw, 96px);
+      border-radius: 18px;
+      border: 1px solid var(--surface-border);
+      background: var(--surface);
+      box-shadow: var(--shadow-soft);
+      display: flex;
+      align-items: center;
+      justify-content: center;
       cursor: pointer;
-      font-size: 4rem;
+      font-size: clamp(2.4rem, 7vw, 3.6rem);
       user-select: none;
-      transition: transform 0.2s;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
     .choice:hover {
-      transform: scale(1.2);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-strong);
     }
     #result {
-      text-align: center;
-      font-size: 1.5rem;
-      font-weight: 700;
-      margin-top: 1rem;
       min-height: 2rem;
+      font-weight: 600;
     }
   </style>
 </head>
-<body class="flex flex-col items-center min-h-screen p-4">
-  <header class="mb-6 text-center">
-    <h1 class="text-4xl font-bold text-gray-700 mb-2">Kámen, nůžky, papír</h1>
-    <p class="text-gray-600">Vyberte svůj tah a hrajte proti počítači.</p>
+<body class="game-page">
+  <header>
+    <h1 class="hero-title">Kámen, nůžky, papír</h1>
+    <p class="hero-subtitle">Vyberte svůj tah a hrajte proti počítači.</p>
   </header>
 
-  <div class="choices" role="group" aria-label="Volby Kámen, nůžky, papír">
-    <div class="choice" data-choice="kámen" aria-label="Kámen" tabindex="0">✊</div>
-    <div class="choice" data-choice="nůžky" aria-label="Nůžky" tabindex="0">✌️</div>
-    <div class="choice" data-choice="papír" aria-label="Papír" tabindex="0">✋</div>
+  <div class="panel game-shell" role="main" aria-label="Kámen, nůžky, papír">
+    <div class="choices" role="group" aria-label="Volby Kámen, nůžky, papír">
+      <div class="choice" data-choice="kámen" aria-label="Kámen" tabindex="0">✊</div>
+      <div class="choice" data-choice="nůžky" aria-label="Nůžky" tabindex="0">✌️</div>
+      <div class="choice" data-choice="papír" aria-label="Papír" tabindex="0">✋</div>
+    </div>
+    <p id="result" class="status" aria-live="polite"></p>
+    <div class="controls">
+      <button id="btnRestart" class="btn btn-secondary">Restart</button>
+    </div>
   </div>
-
-  <div id="result" aria-live="polite"></div>
-
-  <div class="mt-6 space-x-4">
-    <button id="btnRestart" class="px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-800 transition">Restartovat hru</button>
-    <a href="../games.html" class="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition">Zpět na výběr her</a>
-  </div>
+  <a href="../games.html" class="link-back">Zpět na výběr her</a>
 
   <script>
     const choices = ['kámen', 'nůžky', 'papír'];

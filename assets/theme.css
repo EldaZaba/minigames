@@ -50,6 +50,39 @@
   --shadow-strong: 0 24px 56px rgba(10, 38, 22, 0.2);
 }
 
+:root[data-theme="dark"] {
+  --bg: #0b1120;
+  --bg-glow: rgba(56, 189, 248, 0.18);
+  --surface: #111827;
+  --surface-2: #0f172a;
+  --surface-border: rgba(148, 163, 184, 0.2);
+  --text: #e2e8f0;
+  --text-muted: #94a3b8;
+  --accent: #38bdf8;
+  --accent-2: #f97316;
+  --accent-3: #22c55e;
+  --ring: rgba(56, 189, 248, 0.45);
+  --shadow-soft: 0 14px 30px rgba(2, 6, 23, 0.55);
+  --shadow-strong: 0 28px 60px rgba(2, 6, 23, 0.7);
+}
+
+:root[data-theme="dark"] .landing-hero .hero-title,
+:root[data-theme="dark"] .landing-hero .hero-subtitle,
+:root[data-theme="dark"] .landing-hero .eyebrow {
+  color: #000000;
+}
+
+:root[data-theme="dark"] .game-card {
+  background: var(--surface);
+}
+
+:root[data-theme="dark"] #wordDisplay {
+  background: #000000;
+  color: #ffffff;
+  padding: 0.35rem 0.8rem;
+  border-radius: 12px;
+}
+
 *,
 *::before,
 *::after {
@@ -266,6 +299,71 @@ button {
   margin: 0;
 }
 
+.game-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+  padding: clamp(16px, 3vw, 32px);
+  gap: 1rem;
+}
+
+.game-page header {
+  text-align: center;
+}
+
+.game-shell {
+  width: min(92vw, 560px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.hud {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.score-pill {
+  padding: 0.35rem 0.9rem;
+  border-radius: 999px;
+  background: var(--surface-2);
+  border: 1px solid var(--surface-border);
+  font-weight: 600;
+  color: var(--text);
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+}
+
+.hint,
+.status {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  text-align: center;
+}
+
+.link-back {
+  margin-top: 0.5rem;
+  color: var(--accent-3);
+  text-decoration: underline;
+  font-weight: 600;
+}
+
+.link-back:hover {
+  color: var(--accent);
+}
+
 .theme-switcher {
   position: fixed;
   top: 16px;
@@ -302,7 +400,7 @@ button {
 
 @media (max-width: 600px) {
   .theme-switcher {
-    inset: auto 16px 16px auto;
+    inset: auto auto 16px 16px;
   }
 }
 
