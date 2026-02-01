@@ -35,6 +35,7 @@ Motivy přepínáš v pravém horním rohu (Sunset, Ocean, Forest, Tmavý).
 ## Přizpůsobení
 - Favicon: `assets/favicon/favicon.ico`
 - Obrázky pro puzzle: `assets/puzzle-image1.svg` až `assets/puzzle-image4.svg`
+- Open graph design: `assets/preview-window/preview.png`
 
 ## Podpora
 Pokud se ti projekt líbí, můžeš přispět přes [Buy me a coffee](https://www.buymeacoffee.com/eldazaba).
