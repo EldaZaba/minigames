@@ -103,6 +103,13 @@
     const puzzleContainer = document.getElementById('puzzleContainer');
     const puzzleTypeSelect = document.getElementById('puzzleType');
     const size = 4;
+    const puzzleImages = [
+      '../assets/puzzle-image1.svg',
+      '../assets/puzzle-image2.svg',
+      '../assets/puzzle-image3.svg',
+      '../assets/puzzle-image4.svg',
+    ];
+    let puzzleImageUrl = puzzleImages[0];
     let pieces = [];
     let emptyIndex = size * size - 1;
     let puzzleType = puzzleTypeSelect.value;
@@ -111,6 +118,10 @@
       puzzleType = puzzleTypeSelect.value;
       initGame();
     });
+
+    function pickRandomImage() {
+      return puzzleImages[Math.floor(Math.random() * puzzleImages.length)];
+    }
 
     function createPieces() {
       pieces = [];
@@ -125,7 +136,7 @@
           const row = Math.floor(i / size);
           const col = i % size;
           if (puzzleType === 'image') {
-            piece.style.backgroundImage = "url('https://upload.wikimedia.org/wikipedia/commons/3/3a/Cat03.jpg')";
+            piece.style.backgroundImage = `url('${puzzleImageUrl}')`;
             piece.style.backgroundSize = '400% 400%';
             piece.style.backgroundPosition = `${(col * 100) / (size - 1)}% ${(row * 100) / (size - 1)}%`;
             piece.textContent = '';
@@ -167,6 +178,9 @@
         const temp = pieces[i1].style.backgroundPosition;
         pieces[i1].style.backgroundPosition = pieces[i2].style.backgroundPosition;
         pieces[i2].style.backgroundPosition = temp;
+        const tempImage = pieces[i1].style.backgroundImage;
+        pieces[i1].style.backgroundImage = pieces[i2].style.backgroundImage;
+        pieces[i2].style.backgroundImage = tempImage;
       } else if (puzzleType === 'numbers') {
         const tempText = pieces[i1].textContent;
         pieces[i1].textContent = pieces[i2].textContent;
@@ -177,14 +191,14 @@
       pieces[i1].className = pieces[i2].className;
       pieces[i2].className = tempClass;
 
-      pieces[i1].removeEventListener('click', () => movePiece(i1));
-      pieces[i2].removeEventListener('click', () => movePiece(i2));
-
-      if (!pieces[i1].classList.contains('empty')) {
-        pieces[i1].addEventListener('click', () => movePiece(i1));
-      }
-      if (!pieces[i2].classList.contains('empty')) {
-        pieces[i2].addEventListener('click', () => movePiece(i2));
+      if (puzzleType === 'image') {
+        [i1, i2].forEach(index => {
+          if (pieces[index].classList.contains('empty')) {
+            pieces[index].style.backgroundImage = 'none';
+          } else {
+            pieces[index].style.backgroundImage = `url('${puzzleImageUrl}')`;
+          }
+        });
       }
     }
 
@@ -234,6 +248,9 @@
     function initGame() {
       puzzleContainer.innerHTML = '';
       emptyIndex = size * size - 1;
+      if (puzzleType === 'image') {
+        puzzleImageUrl = pickRandomImage();
+      }
       createPieces();
       shufflePieces();
     }

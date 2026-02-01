@@ -1,12 +1,15 @@
-# Mě to nebaví CZ
+﻿# Mě to nebaví CZ
 
-Jednoduchý web s minihrami v češtině. Otevřete `index.html` a můžete začít hrát.
+Sbírka jednoduchých miniher v češtině. Vše běží čistě v prohlížeči – bez instalace.
 
-## Spuštění
-- Otevřete `index.html` v libovolném moderním prohlížeči.
+## Rychlé spuštění
+1. Otevři `index.html` v moderním prohlížeči.
+2. Klikni na Start a vyber hru.
 
-## Seznam her
-- Puzzle
+Tip: projekt funguje i offline.
+
+## Hry
+- Puzzle (obrázek / čísla)
 - Pexeso (Memory)
 - 2048
 - Had (Snake)
@@ -22,13 +25,19 @@ Jednoduchý web s minihrami v češtině. Otevřete `index.html` a můžete zač
 - Lights Out
 - Tetris
 
-## Motivy
-V pravém horním rohu je přepínač motivu (Sunset, Ocean, Forest).
+## Ovládání
+- Klávesnice: šipky/WASD u her, které to podporují.
+- Mobil: tap/swipe tam, kde je to potřeba.
 
-## Buy me a coffee
-Pokud se vám projekt líbí, můžete přispět zde:
+## Vzhled
+Motivy přepínáš v pravém horním rohu (Sunset, Ocean, Forest, Tmavý).
 
-[Buy me a coffee](https://www.buymeacoffee.com/eldazaba)
+## Přizpůsobení
+- Favicon: `assets/favicon/favicon.ico`
+- Obrázky pro puzzle: `assets/puzzle-image1.svg` až `assets/puzzle-image4.svg`
+
+## Podpora
+Pokud se ti projekt líbí, můžeš přispět přes [Buy me a coffee](https://www.buymeacoffee.com/eldazaba).
 
 ## Licence
 Projekt je licencovaný pod MIT. Viz `LICENSE`.
