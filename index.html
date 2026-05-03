@@ -1,118 +1,150 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="cs">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Online minihry zdarma v češtině | Mě to nebaví CZ</title>
+  <meta
+    name="description"
+    content="Hrajte české online minihry zdarma bez instalace. Puzzle, pexeso, Had, 2048, Tetris, piškvorky a další browserové hry pro mobil i počítač."
+  />
+  <meta
+    name="robots"
+    content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+  />
+  <meta name="author" content="Mě to nebaví CZ" />
+  <meta name="application-name" content="Mě to nebaví CZ" />
+  <meta name="theme-color" content="#f97316" />
+  <link rel="canonical" href="https://www.metonebavi.cz/" />
   <link rel="icon" type="image/x-icon" href="assets/favicon/favicon.ico" />
-  <title>Mě to nebaví CZ</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+  <meta property="og:locale" content="cs_CZ" />
+  <meta property="og:site_name" content="Mě to nebaví CZ" />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://www.metonebavi.cz/" />
-  <meta property="og:title" content="Me to nebavi CZ" />
-  <meta property="og:description" content="Sbírka jednoduchych miniher v cestine." />
+  <meta property="og:title" content="Online minihry zdarma v češtině | Mě to nebaví CZ" />
+  <meta
+    property="og:description"
+    content="Sbírka českých miniher zdarma bez stahování. Zahrajte si puzzle, pexeso, Had, 2048, Tetris a další klasiky přímo v prohlížeči."
+  />
   <meta property="og:image" content="https://www.metonebavi.cz/assets/preview-window/preview.png" />
+  <meta property="og:image:alt" content="Náhled webu Mě to nebaví CZ s výběrem miniher" />
+
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Me to nebavi CZ" />
-  <meta name="twitter:description" content="Sbírka jednoduchych miniher v cestine." />
+  <meta name="twitter:title" content="Online minihry zdarma v češtině | Mě to nebaví CZ" />
+  <meta
+    name="twitter:description"
+    content="Sbírka českých miniher zdarma bez stahování. Zahrajte si puzzle, pexeso, Had, 2048, Tetris a další klasiky přímo v prohlížeči."
+  />
   <meta name="twitter:image" content="https://www.metonebavi.cz/assets/preview-window/preview.png" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "WebSite",
+          "@id": "https://www.metonebavi.cz/#website",
+          "url": "https://www.metonebavi.cz/",
+          "name": "Mě to nebaví CZ",
+          "inLanguage": "cs-CZ",
+          "description": "Sbírka online miniher zdarma v češtině bez instalace."
+        },
+        {
+          "@type": "CollectionPage",
+          "@id": "https://www.metonebavi.cz/#webpage",
+          "url": "https://www.metonebavi.cz/",
+          "name": "Online minihry zdarma v češtině | Mě to nebaví CZ",
+          "isPartOf": {
+            "@id": "https://www.metonebavi.cz/#website"
+          },
+          "inLanguage": "cs-CZ",
+          "description": "České online minihry zdarma pro mobil i počítač."
+        }
+      ]
+    }
+  </script>
+
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+  />
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="assets/theme.css" />
   <script src="assets/theme.js" defer></script>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet" />
 </head>
-<body class="landing-page">
+<body class="games-page">
   <div class="app-shell">
-    <section class="panel landing-hero">
-      <p class="eyebrow">Mě to nebaví CZ</p>
-      <h1 class="hero-title">Vítejte na Mě to nebaví CZ</h1>
-      <p class="hero-subtitle">Klikněte na start a začněte hrát:</p>
-      <button id="btnStart" class="btn w-full">
-        <i class="fas fa-play mr-2"></i> Start
-      </button>
-    </section>
+    <header class="hero mb-10">
+      <section class="panel hero-copy">
+        <p class="eyebrow">Online minihry zdarma</p>
+        <h1 class="hero-title">České browserové hry pro rychlé hraní bez instalace</h1>
+        <p class="hero-subtitle">
+          Mě to nebaví CZ je sbírka jednoduchých online miniher v češtině. Zahrajte si puzzle,
+          pexeso, Had, 2048, Tetris, piškvorky a další klasiky přímo v prohlížeči na mobilu i
+          počítači.
+        </p>
+        <div class="hero-actions">
+          <a href="games.html" class="btn">
+            <i class="fas fa-play" aria-hidden="true"></i>
+            Vybrat hru
+          </a>
+        </div>
+      </section>
+
+      <aside class="hero-card" aria-label="Hlavní výhody webu">
+        <h2 class="text-2xl font-bold mb-4">Co na webu najdete</h2>
+        <p class="text-gray-600 mb-4">
+          Rychlé hry zdarma bez registrace, které fungují přímo v internetovém prohlížeči.
+        </p>
+        <ul class="space-y-2 text-left text-gray-700">
+          <li>15 miniher zdarma bez stahování</li>
+          <li>Logické, postřehové i arkádové hry</li>
+          <li>Hraní na desktopu i mobilu</li>
+          <li>Jednoduché ovládání a české prostředí</li>
+        </ul>
+      </aside>
+    </header>
+
+    <main class="space-y-8">
+      <section class="panel">
+        <h2 class="text-2xl font-bold mb-4">Online minihry v češtině na jednom místě</h2>
+        <p class="text-gray-600 mb-4">
+          Na webu najdete klasické online hry zdarma pro krátké odreagování i delší hraní.
+          Jednotlivé minihry běží bez instalace a bez složitého nastavování, takže se do hry
+          dostanete během pár sekund.
+        </p>
+        <p class="text-gray-600">
+          Pokud hledáte české browserové hry pro děti, dospělé, mobil nebo počítač, tahle stránka
+          funguje jako rozcestník ke všem dostupným titulům. Každá hra má vlastní stránku a
+          přímý odkaz, což pomáhá i lepší indexaci ve vyhledávačích.
+        </p>
+      </section>
+
+      <section class="panel">
+        <h2 class="text-2xl font-bold mb-4">Proč je tato stránka vhodná pro rychlé hraní</h2>
+        <p class="text-gray-600 mb-4">
+          Všechny minihry se spouštějí online, takže nejsou potřeba žádné instalace ani registrace.
+          Díky tomu je web vhodný pro krátké pauzy, školní přestávky i domácí hraní na mobilu nebo
+          notebooku.
+        </p>
+        <p class="text-gray-600">
+          Přes tlačítko Vybrat hru se dostanete na kompletní přehled všech titulů s přímými odkazy
+          na jednotlivé hry. To pomáhá návštěvníkům s orientací a zároveň posiluje interní
+          prolinkování celého webu.
+        </p>
+      </section>
+    </main>
+
+    <footer class="mt-12 text-center text-gray-500 text-sm">
+      &copy; 2026 Mě to nebaví CZ. Všechna práva vyhrazena.
+    </footer>
   </div>
-  <main id="gameList" class="panel hidden w-full max-w-4xl bg-white rounded-lg shadow-lg p-6 space-y-6">
-    <h2 class="text-2xl font-bold mb-6 text-center">Vyberte si hru</h2>
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      <a href="games/puzzle.html" class="bg-white rounded-lg shadow p-6 flex flex-col items-center hover:shadow-lg transition">
-        <i class="fas fa-puzzle-piece fa-3x text-pink-600 mb-4"></i>
-        <h2 class="text-xl font-semibold mb-2">Puzzle</h2>
-        <p class="text-gray-600 text-center">Skládejte obrázkové puzzle co nejrychleji. (Solo)</p>
-      </a>
-      <a href="games/memory.html" class="bg-white rounded-lg shadow p-6 flex flex-col items-center hover:shadow-lg transition">
-        <i class="fas fa-clone fa-3x text-purple-600 mb-4"></i>
-        <h2 class="text-xl font-semibold mb-2">Pexeso (Memory)</h2>
-        <p class="text-gray-600 text-center">Najděte všechny dvojice karet co nejrychleji. (Solo)</p>
-      </a>
-      <a href="games/2048.html" class="bg-white rounded-lg shadow p-6 flex flex-col items-center hover:shadow-lg transition">
-        <i class="fas fa-th-large fa-3x text-yellow-500 mb-4"></i>
-        <h2 class="text-xl font-semibold mb-2">2048</h2>
-        <p class="text-gray-600 text-center">Spojujte čísla a dosáhněte čísla 2048. (Solo)</p>
-      </a>
-      <a href="games/snake.html" class="bg-white rounded-lg shadow p-6 flex flex-col items-center hover:shadow-lg transition">
-        <i class="fas fa-dragon fa-3x text-green-600 mb-4"></i>
-        <h2 class="text-xl font-semibold mb-2">Had (Snake)</h2>
-        <p class="text-gray-600 text-center">Klasická hra Had s ovládáním na klávesnici nebo dotykem. (Solo, vs PC)</p>
-      </a>
-      <a href="games/tictactoe.html" class="bg-white rounded-lg shadow p-6 flex flex-col items-center hover:shadow-lg transition">
-        <i class="fas fa-times fa-3x text-blue-600 mb-4"></i>
-        <h2 class="text-xl font-semibold mb-2">Piškvorky (Tic Tac Toe)</h2>
-        <p class="text-gray-600 text-center">Hrajte klasické piškvorky proti kamarádovi nebo počítači. (Vs Friend, vs PC)</p>
-      </a>
-      <a href="games/connectfour.html" class="bg-white rounded-lg shadow p-6 flex flex-col items-center hover:shadow-lg transition">
-        <i class="fas fa-circle fa-3x text-red-500 mb-4"></i>
-        <h2 class="text-xl font-semibold mb-2">Čtyři v řadě (Connect Four)</h2>
-        <p class="text-gray-600 text-center">Spojte čtyři kameny v řadě dříve než soupeř. (Vs Friend)</p>
-      </a>
-      <a href="games/rockpaperscissors.html" class="bg-white rounded-lg shadow p-6 flex flex-col items-center hover:shadow-lg transition">
-        <i class="fas fa-hand-rock fa-3x text-gray-700 mb-4"></i>
-        <h2 class="text-xl font-semibold mb-2">Kámen, nůžky, papír</h2>
-        <p class="text-gray-600 text-center">Hrajte klasickou hru proti počítači nebo kamarádovi. (Vs Friend, vs PC)</p>
-      </a>
-      <a href="games/simon.html" class="bg-white rounded-lg shadow p-6 flex flex-col items-center hover:shadow-lg transition">
-        <i class="fas fa-brain fa-3x text-indigo-600 mb-4"></i>
-        <h2 class="text-xl font-semibold mb-2">Simon říká (Simon Says)</h2>
-        <p class="text-gray-600 text-center">Zapamatujte si a opakujte sekvence barev a zvuků. (Solo)</p>
-      </a>
-      <a href="games/hangman.html" class="bg-white rounded-lg shadow p-6 flex flex-col items-center hover:shadow-lg transition">
-        <i class="fas fa-user-secret fa-3x text-green-700 mb-4"></i>
-        <h2 class="text-xl font-semibold mb-2">Šibenice (Hangman)</h2>
-        <p class="text-gray-600 text-center">Hádejte slova dříve než se šibenice dokončí. (Solo)</p>
-      </a>
 
-      <a href="games/flappybird.html" class="bg-white rounded-lg shadow p-6 flex flex-col items-center hover:shadow-lg transition">
-        <i class="fas fa-dove fa-3x text-sky-500 mb-4"></i>
-        <h2 class="text-xl font-semibold mb-2">Flappy Bird</h2>
-        <p class="text-gray-600 text-center">Proleťte mezi trubkami bez nárazu. (Solo)</p>
-      </a>
-      <a href="games/breakout.html" class="bg-white rounded-lg shadow p-6 flex flex-col items-center hover:shadow-lg transition">
-        <i class="fas fa-bullseye fa-3x text-amber-500 mb-4"></i>
-        <h2 class="text-xl font-semibold mb-2">Breakout</h2>
-        <p class="text-gray-600 text-center">Rozbijte všechny cihly a nenechte míček spadnout. (Solo)</p>
-      </a>
-      <a href="games/whackamole.html" class="bg-white rounded-lg shadow p-6 flex flex-col items-center hover:shadow-lg transition">
-        <i class="fas fa-hand-pointer fa-3x text-rose-500 mb-4"></i>
-        <h2 class="text-xl font-semibold mb-2">Whack-a-Mole</h2>
-        <p class="text-gray-600 text-center">Klikněte na krtka dřív, než zmizí. (Solo)</p>
-      </a>
-      <a href="games/lightsout.html" class="bg-white rounded-lg shadow p-6 flex flex-col items-center hover:shadow-lg transition">
-        <i class="fas fa-lightbulb fa-3x text-yellow-500 mb-4"></i>
-        <h2 class="text-xl font-semibold mb-2">Lights Out</h2>
-        <p class="text-gray-600 text-center">Zhasněte všechna světla přepínáním políček. (Solo)</p>
-      </a>
-      <a href="games/tetris.html" class="bg-white rounded-lg shadow p-6 flex flex-col items-center hover:shadow-lg transition">
-        <i class="fas fa-cubes fa-3x text-indigo-500 mb-4"></i>
-        <h2 class="text-xl font-semibold mb-2">Tetris</h2>
-        <p class="text-gray-600 text-center">Skládejte bloky a čistěte řádky. (Solo)</p>
-      </a>
-    </div>
-  </main>
-
-  <footer class="mt-12 text-center text-gray-500 text-sm">
-    &copy; 2026 Mě to nebaví CZ. Všechna práva vyhrazena.
-  </footer>
-
-  <script data-name="BMC-Widget"
+  <script
+    data-name="BMC-Widget"
     data-cfasync="false"
     src="https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js"
     data-id="eldazaba"
@@ -121,13 +153,7 @@
     data-color="#FFDD00"
     data-position="Right"
     data-x_margin="18"
-    data-y_margin="18"></script>
-
-  <script>
-    document.getElementById('btnStart').addEventListener('click', () => {
-      window.location.href = 'games.html';
-    });
-  </script>
+    data-y_margin="18"
+  ></script>
 </body>
 </html>
-
