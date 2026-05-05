@@ -75,66 +75,208 @@
   <link rel="stylesheet" href="assets/theme.css" />
   <script src="assets/theme.js" defer></script>
 </head>
-<body class="games-page">
+<body class="games-page home-page">
   <div class="app-shell">
-    <header class="hero mb-10">
-      <section class="panel hero-copy">
+    <header class="home-hero">
+      <section class="panel home-hero__main">
         <p class="eyebrow">Online minihry zdarma</p>
-        <h1 class="hero-title">České browserové hry pro rychlé hraní bez instalace</h1>
-        <p class="hero-subtitle">
-          Mě to nebaví CZ je sbírka jednoduchých online miniher v češtině. Zahrajte si puzzle,
-          pexeso, Had, 2048, Tetris, piškvorky a další klasiky přímo v prohlížeči na mobilu i
-          počítači.
-        </p>
+        <div class="home-hero__headline">
+          <h1 class="hero-title">České browserové hry, které spustíte za pár sekund</h1>
+          <p class="hero-subtitle">
+            Mě to nebaví CZ je rozcestník pro rychlé hraní bez instalace. Na mobilu i počítači si
+            během chvíle pustíte logické, arkádové i postřehové hry přímo v prohlížeči.
+          </p>
+          <p class="home-lead">
+            Místo dlouhého hledání dostanete hned několik jasných cest: novinku týdne, doporučené
+            klasiky i rychlé volby podle nálady. Každá hra má vlastní stránku a funguje okamžitě.
+          </p>
+        </div>
+
         <div class="hero-actions">
           <a href="games.html" class="btn">
             <i class="fas fa-play" aria-hidden="true"></i>
             Vybrat hru
           </a>
+          <a href="games/orbitalescape.html" class="btn btn-secondary">
+            <i class="fas fa-meteor" aria-hidden="true"></i>
+            Zkusit novinku
+          </a>
+        </div>
+
+        <div class="home-stat-grid" aria-label="Základní přehled webu">
+          <div class="home-stat">
+            <strong>16</strong>
+            <span>miniher zdarma bez instalace</span>
+          </div>
+          <div class="home-stat">
+            <strong>3</strong>
+            <span>hlavní typy: logika, reflex, klasiky</span>
+          </div>
+          <div class="home-stat">
+            <strong>100 %</strong>
+            <span>hraní v prohlížeči na mobilu i desktopu</span>
+          </div>
         </div>
       </section>
 
-      <aside class="hero-card" aria-label="Hlavní výhody webu">
-        <h2 class="text-2xl font-bold mb-4">Co na webu najdete</h2>
-        <p class="text-gray-600 mb-4">
-          Rychlé hry zdarma bez registrace, které fungují přímo v internetovém prohlížeči.
-        </p>
-        <ul class="space-y-2 text-left text-gray-700">
-          <li>15 miniher zdarma bez stahování</li>
-          <li>Logické, postřehové i arkádové hry</li>
-          <li>Hraní na desktopu i mobilu</li>
-          <li>Jednoduché ovládání a české prostředí</li>
-        </ul>
+      <aside class="home-hero__side" aria-label="Rychlé tipy">
+        <a href="games/orbitalescape.html" class="panel home-featured">
+          <span class="home-featured__label">
+            <i class="fas fa-star" aria-hidden="true"></i>
+            Novinka
+          </span>
+          <h2>Orbitální únik</h2>
+          <p>
+            Nová arkádová hra s pohybem po orbitě, meteority, sbíráním energie a nouzovým pulzem.
+          </p>
+          <div class="home-featured__meta">
+            <span><i class="fas fa-meteor" aria-hidden="true"></i> Reflex</span>
+            <span><i class="fas fa-mobile-alt" aria-hidden="true"></i> Mobil i PC</span>
+            <span><i class="fas fa-trophy" aria-hidden="true"></i> Na rekord</span>
+          </div>
+        </a>
+
+        <section class="panel home-quick-panel">
+          <h2 class="text-2xl font-bold">Co chcete hrát?</h2>
+          <p>Rychlý výběr podle nálady, bez proklikávání celé nabídky.</p>
+          <div class="home-quick-grid">
+            <a href="games/lightsout.html" class="home-quick-chip">
+              <strong>Na logiku</strong>
+              <span>Lights Out, Minesweeper, 2048</span>
+            </a>
+            <a href="games/orbitalescape.html" class="home-quick-chip">
+              <strong>Na akci</strong>
+              <span>Orbitální únik, Flappy Bird, Breakout</span>
+            </a>
+            <a href="games/memory.html" class="home-quick-chip">
+              <strong>Na chvíli</strong>
+              <span>Pexeso, Simon, Whack-a-Mole</span>
+            </a>
+            <a href="games/tetris.html" class="home-quick-chip">
+              <strong>Na klasiku</strong>
+              <span>Tetris, Had, Piškvorky</span>
+            </a>
+          </div>
+        </section>
       </aside>
     </header>
 
-    <main class="space-y-8">
-      <section class="panel">
-        <h2 class="text-2xl font-bold mb-4">Online minihry v češtině na jednom místě</h2>
-        <p class="text-gray-600 mb-4">
-          Na webu najdete klasické online hry zdarma pro krátké odreagování i delší hraní.
-          Jednotlivé minihry běží bez instalace a bez složitého nastavování, takže se do hry
-          dostanete během pár sekund.
-        </p>
-        <p class="text-gray-600">
-          Pokud hledáte české browserové hry pro děti, dospělé, mobil nebo počítač, tahle stránka
-          funguje jako rozcestník ke všem dostupným titulům. Každá hra má vlastní stránku a
-          přímý odkaz, což pomáhá i lepší indexaci ve vyhledávačích.
-        </p>
+    <main class="home-main">
+      <section class="panel home-strip" aria-label="Hlavní výhody webu">
+        <div class="home-strip__item">
+          <strong>Bez registrace</strong>
+          <span>Otevřete hru a začněte ihned.</span>
+        </div>
+        <div class="home-strip__item">
+          <strong>Pro mobil i desktop</strong>
+          <span>Hraní funguje na dotyk i klávesnici.</span>
+        </div>
+        <div class="home-strip__item">
+          <strong>Krátké i delší session</strong>
+          <span>Od rychlé pauzy po lovení rekordů.</span>
+        </div>
+        <div class="home-strip__item">
+          <strong>Přímé odkazy</strong>
+          <span>Každá hra má vlastní přehlednou stránku.</span>
+        </div>
       </section>
 
-      <section class="panel">
-        <h2 class="text-2xl font-bold mb-4">Proč je tato stránka vhodná pro rychlé hraní</h2>
-        <p class="text-gray-600 mb-4">
-          Všechny minihry se spouštějí online, takže nejsou potřeba žádné instalace ani registrace.
-          Díky tomu je web vhodný pro krátké pauzy, školní přestávky i domácí hraní na mobilu nebo
-          notebooku.
-        </p>
-        <p class="text-gray-600">
-          Přes tlačítko Vybrat hru se dostanete na kompletní přehled všech titulů s přímými odkazy
-          na jednotlivé hry. To pomáhá návštěvníkům s orientací a zároveň posiluje interní
-          prolinkování celého webu.
-        </p>
+      <section class="home-copy-grid">
+        <article class="panel home-copy-card">
+          <p class="eyebrow">Vyber podle nálady</p>
+          <h2 class="text-2xl font-bold">Rychlý start bez přemýšlení</h2>
+          <p>
+            Na webu najdete klasické online hry zdarma pro krátké odreagování i delší hraní. Když
+            nechcete procházet celý seznam, zvolte rovnou typ hry, na který máte chuť.
+          </p>
+          <div class="home-mode-grid">
+            <a href="games/orbitalescape.html" class="home-mode-card">
+              <i class="fas fa-meteor text-cyan-500" aria-hidden="true"></i>
+              <strong>Akce</strong>
+              <span>Orbitální únik a Flappy Bird pro rychlé reflexy.</span>
+            </a>
+            <a href="games/lightsout.html" class="home-mode-card">
+              <i class="fas fa-brain text-emerald-600" aria-hidden="true"></i>
+              <strong>Logika</strong>
+              <span>2048, Lights Out nebo Minesweeper na klidnější tempo.</span>
+            </a>
+            <a href="games/tetris.html" class="home-mode-card">
+              <i class="fas fa-gamepad text-amber-500" aria-hidden="true"></i>
+              <strong>Klasiky</strong>
+              <span>Tetris, Had a Piškvorky jako jistota na první klik.</span>
+            </a>
+          </div>
+        </article>
+
+        <article class="panel home-copy-card">
+          <p class="eyebrow">Proč to funguje</p>
+          <h2 class="text-2xl font-bold">Stránka pro krátké pauzy i delší hraní</h2>
+          <p>
+            Všechny minihry se spouštějí online, takže nejsou potřeba žádné instalace ani registrace.
+            Díky tomu se do hry dostanete během pár sekund na mobilu, notebooku i počítači.
+          </p>
+          <p class="mb-0">
+            Pokud hledáte české browserové hry pro děti, dospělé nebo jen rychlou zábavu do pauzy,
+            tenhle rozcestník drží vše pohromadě bez zbytečného chaosu.
+          </p>
+        </article>
+      </section>
+
+      <section class="panel home-catalog">
+        <p class="eyebrow">Doporučené starty</p>
+        <h2 class="text-2xl font-bold">Čtyři hry, kterými začít</h2>
+        <p>Rychlý průřez tím nejlepším napříč žánry, pokud jste na webu poprvé.</p>
+        <div class="home-catalog__grid">
+          <a href="games/orbitalescape.html" class="home-pick">
+            <div class="home-pick__icon text-cyan-500">
+              <i class="fas fa-meteor" aria-hidden="true"></i>
+            </div>
+            <strong>Orbitální únik</strong>
+            <span>Nová akční hra s rekordem, energií a tlakem na reflex.</span>
+          </a>
+          <a href="games/memory.html" class="home-pick">
+            <div class="home-pick__icon text-pink-500">
+              <i class="fas fa-clone" aria-hidden="true"></i>
+            </div>
+            <strong>Pexeso</strong>
+            <span>Jednoduchý start, který funguje pro děti i dospělé.</span>
+          </a>
+          <a href="games/tetris.html" class="home-pick">
+            <div class="home-pick__icon text-indigo-500">
+              <i class="fas fa-cubes" aria-hidden="true"></i>
+            </div>
+            <strong>Tetris</strong>
+            <span>Klasika na delší session a čistění řádků.</span>
+          </a>
+          <a href="games/minesweeper.html" class="home-pick">
+            <div class="home-pick__icon text-rose-500">
+              <i class="fas fa-bomb" aria-hidden="true"></i>
+            </div>
+            <strong>Minesweeper</strong>
+            <span>Tradiční logická hra pro trpělivé a přesné tahy.</span>
+          </a>
+        </div>
+      </section>
+
+      <section class="panel home-cta">
+        <div>
+          <p class="eyebrow">Celá sbírka</p>
+          <h2 class="text-2xl font-bold">Chcete projít všechny minihry?</h2>
+          <p>
+            Na jedné stránce najdete kompletní přehled všech titulů s přímými odkazy. Hodí se ve chvíli,
+            kdy si chcete jen rychle vybrat další hru bez vracení zpět.
+          </p>
+        </div>
+        <div class="home-cta__actions">
+          <a href="games.html" class="btn">
+            <i class="fas fa-list" aria-hidden="true"></i>
+            Zobrazit všech 16 her
+          </a>
+          <a href="games/orbitalescape.html" class="btn btn-secondary">
+            <i class="fas fa-rocket" aria-hidden="true"></i>
+            Hrát Orbitální únik
+          </a>
+        </div>
       </section>
     </main>
 

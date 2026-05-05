@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" type="image/x-icon" href="../assets/favicon/favicon.ico" />
+  <title>Orbitální únik - Mě to nebaví CZ</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../assets/theme.css" />
+  <script src="../assets/theme.js" defer></script>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      padding: clamp(16px, 3vw, 32px);
+      gap: 1rem;
+    }
+    header {
+      text-align: center;
+    }
+    .game-shell {
+      width: min(92vw, 640px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+    .hud {
+      width: 100%;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .inline-stats {
+      width: 100%;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 12px;
+      align-items: center;
+    }
+    .meter-card {
+      padding: 0.9rem 1rem;
+      border-radius: 18px;
+      border: 1px solid var(--surface-border);
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.5));
+    }
+    .meter-label-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 0.55rem;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .meter {
+      height: 12px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.08);
+      border: 1px solid rgba(15, 23, 42, 0.08);
+    }
+    .meter-fill {
+      height: 100%;
+      width: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #22d3ee, #0ea5e9 55%, #0284c7);
+      transition: width 0.16s linear;
+    }
+    #orbitCanvas {
+      width: min(92vw, 440px);
+      height: auto;
+      aspect-ratio: 1 / 1;
+      border-radius: 24px;
+      border: 1px solid rgba(125, 211, 252, 0.14);
+      box-shadow: 0 26px 48px rgba(2, 6, 23, 0.28);
+      background: radial-gradient(circle at 50% 48%, #1e293b 0%, #0f172a 46%, #020617 100%);
+      touch-action: none;
+    }
+    .pulse-btn {
+      min-width: 120px;
+      justify-content: center;
+    }
+    .status,
+    .hint {
+      margin: 0;
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      text-align: center;
+    }
+    .link-back {
+      margin-top: 0.5rem;
+      color: var(--accent-3);
+      text-decoration: underline;
+      font-weight: 600;
+    }
+    .link-back:hover {
+      color: var(--accent);
+    }
+    @media (max-width: 640px) {
+      .inline-stats {
+        grid-template-columns: 1fr;
+      }
+      .pulse-btn {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1 class="hero-title">Orbitální únik</h1>
+    <p class="hero-subtitle">Držte se na oběžné dráze, sbírejte jádra a v pravý čas odpálte nouzový pulz.</p>
+  </header>
+
+  <div class="panel game-shell" role="main" aria-label="Orbitální únik">
+    <div class="hud">
+      <div class="score-pill">Skóre: <span id="score">0</span></div>
+      <div class="score-pill">Rekord: <span id="best">0</span></div>
+      <div class="controls">
+        <button id="btnStart" class="btn">Start</button>
+        <button id="btnRestart" class="btn btn-secondary">Restart</button>
+      </div>
+    </div>
+
+    <div class="inline-stats">
+      <div class="meter-card">
+        <div class="meter-label-row">
+          <span>Energie pulzu</span>
+          <span id="energyValue">100 %</span>
+        </div>
+        <div class="meter" aria-hidden="true">
+          <div id="energyFill" class="meter-fill"></div>
+        </div>
+      </div>
+      <button id="btnPulse" class="btn btn-ghost pulse-btn">Pulz</button>
+    </div>
+
+    <canvas id="orbitCanvas" width="440" height="440" aria-label="Aréna hry Orbitální únik"></canvas>
+    <p id="status" class="status">Spusťte hru a přežijte v orbitě co nejdéle.</p>
+    <p class="hint">Ovládání: šipky nebo A/D, na mobilu tažení po aréně. Mezerník nebo tlačítko Pulz odpálí vlnu přes celý kruh.</p>
+  </div>
+  <a href="../games.html" class="link-back">Zpět na výběr her</a>
+
+  <script>
+    const canvas = document.getElementById('orbitCanvas');
+    const ctx = canvas.getContext('2d');
+    const scoreEl = document.getElementById('score');
+    const bestEl = document.getElementById('best');
+    const statusEl = document.getElementById('status');
+    const energyEl = document.getElementById('energyValue');
+    const energyFillEl = document.getElementById('energyFill');
+    const btnStart = document.getElementById('btnStart');
+    const btnRestart = document.getElementById('btnRestart');
+    const btnPulse = document.getElementById('btnPulse');
+
+    const TAU = Math.PI * 2;
+    const center = { x: canvas.width / 2, y: canvas.height / 2 };
+    const orbitRadius = 122;
+    const orbitThickness = 20;
+    const playerSize = 12;
+    const playerTurnSpeed = 2.65;
+    const spawnRadius = 238;
+    const pulseCost = 40;
+    const maxEnergy = 100;
+    const bestKey = 'orbit-escape-best';
+
+    const stars = Array.from({ length: 56 }, () => ({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      size: 0.7 + Math.random() * 1.8,
+      alpha: 0.2 + Math.random() * 0.65,
+      phase: Math.random() * TAU,
+    }));
+
+    let state = 'idle';
+    let score = 0;
+    let best = loadBestScore();
+    let energy = maxEnergy;
+    let playerAngle = -Math.PI / 2;
+    let elapsed = 0;
+    let spawnTimer = 0;
+    let pickupTimer = 4.5;
+    let lastTime = 0;
+    let leftPressed = false;
+    let rightPressed = false;
+    let dragPointerId = null;
+    let obstacles = [];
+    let pickups = [];
+    let pulses = [];
+    let particles = [];
+
+    function loadBestScore() {
+      try {
+        return Number(localStorage.getItem(bestKey)) || 0;
+      } catch (error) {
+        return 0;
+      }
+    }
+
+    function saveBestScore(value) {
+      try {
+        localStorage.setItem(bestKey, String(value));
+      } catch (error) {
+        // Ignore storage errors.
+      }
+    }
+
+    function updateHud() {
+      scoreEl.textContent = Math.floor(score);
+      bestEl.textContent = Math.floor(best);
+      energyEl.textContent = `${Math.round(energy)} %`;
+      energyFillEl.style.width = `${energy}%`;
+    }
+
+    function setStatus(message) {
+      statusEl.textContent = message;
+    }
+
+    function resetGame() {
+      state = 'idle';
+      score = 0;
+      energy = maxEnergy;
+      playerAngle = -Math.PI / 2;
+      elapsed = 0;
+      spawnTimer = 0;
+      pickupTimer = 4.5;
+      lastTime = 0;
+      leftPressed = false;
+      rightPressed = false;
+      dragPointerId = null;
+      obstacles = [];
+      pickups = [];
+      pulses = [];
+      particles = [];
+      btnStart.textContent = 'Start';
+      setStatus('Spusťte hru a přežijte v orbitě co nejdéle.');
+      updateHud();
+    }
+
+    function startOrToggleGame() {
+      if (state === 'running') {
+        state = 'paused';
+        btnStart.textContent = 'Pokračovat';
+        setStatus('Pauza. Připravte si další úhyb.');
+        return;
+      }
+
+      if (state === 'idle' || state === 'gameover') {
+        score = 0;
+        energy = maxEnergy;
+        playerAngle = -Math.PI / 2;
+        elapsed = 0;
+        spawnTimer = 0;
+        pickupTimer = 3.8;
+        obstacles = [];
+        pickups = [];
+        pulses = [];
+        particles = [];
+      }
+
+      state = 'running';
+      btnStart.textContent = 'Pauza';
+      setStatus('Orbit je nestabilní. Meteory přilétají.');
+      updateHud();
+    }
+
+    function restartGame() {
+      resetGame();
+      startOrToggleGame();
+    }
+
+    function normalizeAngle(angle) {
+      let normalized = angle % TAU;
+      if (normalized < -Math.PI) normalized += TAU;
+      if (normalized > Math.PI) normalized -= TAU;
+      return normalized;
+    }
+
+    function angleDelta(a, b) {
+      return Math.abs(normalizeAngle(a - b));
+    }
+
+    function polarToCartesian(radius, angle) {
+      return {
+        x: center.x + Math.cos(angle) * radius,
+        y: center.y + Math.sin(angle) * radius,
+      };
+    }
+
+    function difficultyLevel() {
+      return 1 + elapsed / 17;
+    }
+
+    function spawnObstacle() {
+      const difficulty = difficultyLevel();
+      if (Math.random() < 0.24) {
+        obstacles.push({
+          type: 'gate',
+          angle: Math.random() * TAU,
+          radius: spawnRadius,
+          speed: 82 + difficulty * 16 + Math.random() * 14,
+          span: 0.52 + Math.random() * 0.5,
+          thickness: 16,
+          glow: Math.random() * 0.7 + 0.3,
+        });
+        return;
+      }
+
+      obstacles.push({
+        type: 'meteor',
+        angle: Math.random() * TAU,
+        radius: spawnRadius,
+        speed: 108 + difficulty * 18 + Math.random() * 34,
+        size: 10 + Math.random() * 9,
+        spin: (Math.random() - 0.5) * 0.09,
+      });
+    }
+
+    function spawnPickup() {
+      pickups.push({
+        angle: Math.random() * TAU,
+        radius: spawnRadius,
+        speed: 88 + Math.random() * 12,
+        size: 9,
+        pulse: Math.random() * TAU,
+      });
+      pickupTimer = 5 + Math.random() * 3.5;
+    }
+
+    function createBurst(radius, angle, color, count) {
+      const origin = polarToCartesian(radius, angle);
+      for (let i = 0; i < count; i++) {
+        const spread = Math.random() * TAU;
+        particles.push({
+          x: origin.x,
+          y: origin.y,
+          dx: Math.cos(spread) * (35 + Math.random() * 80),
+          dy: Math.sin(spread) * (35 + Math.random() * 80),
+          life: 0.35 + Math.random() * 0.35,
+          maxLife: 0.35 + Math.random() * 0.35,
+          size: 1.6 + Math.random() * 2.8,
+          color,
+        });
+      }
+    }
+
+    function activatePulse() {
+      if (state !== 'running') return;
+      if (energy < pulseCost) {
+        setStatus('Na pulz chybí energie. Seberte jádro nebo chvíli vydržte.');
+        return;
+      }
+
+      energy = Math.max(0, energy - pulseCost);
+      pulses.push({
+        radius: 34,
+        speed: 300,
+        alpha: 1,
+      });
+      createBurst(34, playerAngle, '#67e8f9', 12);
+      setStatus('Pulz odpálen. Vyčistěte si dráhu.');
+      updateHud();
+    }
+
+    function endGame() {
+      state = 'gameover';
+      btnStart.textContent = 'Hrát znovu';
+      const finalScore = Math.floor(score);
+      if (finalScore > best) {
+        best = finalScore;
+        saveBestScore(best);
+        setStatus(`Nový rekord: ${best}. Orbit byl tentokrát tvrdý.`);
+      } else {
+        setStatus(`Konec hry. Skóre ${finalScore}. Zkuste to znovu.`);
+      }
+      updateHud();
+    }
+
+    function pointOnArc(radius, angle) {
+      return polarToCartesian(radius, angle);
+    }
+
+    function meteorHitsPlayer(obstacle) {
+      const radialGap = Math.abs(obstacle.radius - orbitRadius);
+      const angleGap = angleDelta(obstacle.angle, playerAngle);
+      const angleLimit = (playerSize + obstacle.size) / orbitRadius;
+      return radialGap < playerSize + obstacle.size + 2 && angleGap < angleLimit;
+    }
+
+    function gateHitsPlayer(obstacle) {
+      const radialGap = Math.abs(obstacle.radius - orbitRadius);
+      const angleGap = angleDelta(obstacle.angle, playerAngle);
+      const spanLimit = obstacle.span / 2 + playerSize / orbitRadius;
+      return radialGap < playerSize + obstacle.thickness * 0.6 && angleGap < spanLimit;
+    }
+
+    function pickupHitsPlayer(pickup) {
+      const radialGap = Math.abs(pickup.radius - orbitRadius);
+      const angleGap = angleDelta(pickup.angle, playerAngle);
+      const angleLimit = (playerSize + pickup.size) / orbitRadius;
+      return radialGap < playerSize + pickup.size + 2 && angleGap < angleLimit;
+    }
+
+    function pulseHitsObstacle(pulse, obstacle) {
+      if (obstacle.type === 'gate') {
+        return Math.abs(pulse.radius - obstacle.radius) < obstacle.thickness + 7;
+      }
+      return Math.abs(pulse.radius - obstacle.radius) < obstacle.size + 7;
+    }
+
+    function updateGame(delta) {
+      elapsed += delta;
+      score += delta * (12 + difficultyLevel() * 2.4);
+      energy = Math.min(maxEnergy, energy + delta * 6.5);
+
+      if (dragPointerId === null) {
+        let direction = 0;
+        if (leftPressed) direction -= 1;
+        if (rightPressed) direction += 1;
+        playerAngle = normalizeAngle(playerAngle + direction * playerTurnSpeed * delta);
+      }
+
+      spawnTimer += delta;
+      const spawnInterval = Math.max(0.28, 0.88 - difficultyLevel() * 0.045);
+      while (spawnTimer >= spawnInterval) {
+        spawnTimer -= spawnInterval;
+        spawnObstacle();
+      }
+
+      pickupTimer -= delta;
+      if (pickupTimer <= 0) {
+        spawnPickup();
+      }
+
+      for (let i = obstacles.length - 1; i >= 0; i--) {
+        const obstacle = obstacles[i];
+        obstacle.radius -= obstacle.speed * delta;
+        if (obstacle.type === 'meteor') {
+          obstacle.angle = normalizeAngle(obstacle.angle + obstacle.spin * delta * 12);
+          if (meteorHitsPlayer(obstacle)) {
+            createBurst(obstacle.radius, obstacle.angle, '#fb7185', 18);
+            endGame();
+            return;
+          }
+        } else if (gateHitsPlayer(obstacle)) {
+          createBurst(obstacle.radius, obstacle.angle, '#f97316', 18);
+          endGame();
+          return;
+        }
+
+        if (obstacle.radius < 12) {
+          obstacles.splice(i, 1);
+          score += obstacle.type === 'gate' ? 10 : 6;
+        }
+      }
+
+      for (let i = pickups.length - 1; i >= 0; i--) {
+        const pickup = pickups[i];
+        pickup.radius -= pickup.speed * delta;
+        pickup.pulse += delta * 5;
+
+        if (pickupHitsPlayer(pickup)) {
+          pickups.splice(i, 1);
+          energy = Math.min(maxEnergy, energy + 28);
+          score += 18;
+          createBurst(pickup.radius, pickup.angle, '#5eead4', 14);
+          setStatus('Jádro sebráno. Pulz je silnější.');
+          continue;
+        }
+
+        if (pickup.radius < 20) {
+          pickups.splice(i, 1);
+        }
+      }
+
+      for (let p = pulses.length - 1; p >= 0; p--) {
+        const pulse = pulses[p];
+        pulse.radius += pulse.speed * delta;
+        pulse.alpha = Math.max(0, 1 - pulse.radius / (spawnRadius + 30));
+
+        let destroyed = 0;
+        for (let i = obstacles.length - 1; i >= 0; i--) {
+          if (pulseHitsObstacle(pulse, obstacles[i])) {
+            const obstacle = obstacles[i];
+            createBurst(obstacle.radius, obstacle.angle, obstacle.type === 'gate' ? '#f97316' : '#fb7185', obstacle.type === 'gate' ? 14 : 10);
+            obstacles.splice(i, 1);
+            destroyed += obstacle.type === 'gate' ? 2 : 1;
+            score += obstacle.type === 'gate' ? 16 : 9;
+          }
+        }
+
+        if (destroyed >= 3) {
+          setStatus(`Kombo pulzu x${destroyed}. Tohle bolelo.`);
+        }
+
+        if (pulse.alpha <= 0) {
+          pulses.splice(p, 1);
+        }
+      }
+
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const particle = particles[i];
+        particle.life -= delta;
+        particle.x += particle.dx * delta;
+        particle.y += particle.dy * delta;
+        particle.dx *= 0.98;
+        particle.dy *= 0.98;
+
+        if (particle.life <= 0) {
+          particles.splice(i, 1);
+        }
+      }
+
+      updateHud();
+    }
+
+    function drawBackground(time) {
+      const gradient = ctx.createRadialGradient(center.x, center.y, 35, center.x, center.y, canvas.width * 0.52);
+      gradient.addColorStop(0, '#1e293b');
+      gradient.addColorStop(0.58, '#0f172a');
+      gradient.addColorStop(1, '#020617');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      for (const star of stars) {
+        const alpha = star.alpha + Math.sin(time * 0.0015 + star.phase) * 0.12;
+        ctx.fillStyle = `rgba(255, 255, 255, ${Math.max(0.08, alpha)})`;
+        ctx.beginPath();
+        ctx.arc(star.x, star.y, star.size, 0, TAU);
+        ctx.fill();
+      }
+
+      ctx.save();
+      ctx.strokeStyle = 'rgba(103, 232, 249, 0.12)';
+      ctx.lineWidth = 1;
+      [82, orbitRadius, 168].forEach(radius => {
+        ctx.beginPath();
+        ctx.arc(center.x, center.y, radius, 0, TAU);
+        ctx.stroke();
+      });
+      ctx.restore();
+
+      ctx.save();
+      const glow = ctx.createRadialGradient(center.x, center.y, 10, center.x, center.y, 42);
+      glow.addColorStop(0, '#fff7ed');
+      glow.addColorStop(0.35, '#fb923c');
+      glow.addColorStop(1, 'rgba(251, 146, 60, 0)');
+      ctx.fillStyle = glow;
+      ctx.beginPath();
+      ctx.arc(center.x, center.y, 42, 0, TAU);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    function drawPlayer() {
+      ctx.save();
+      ctx.strokeStyle = 'rgba(34, 211, 238, 0.22)';
+      ctx.lineWidth = orbitThickness;
+      ctx.beginPath();
+      ctx.arc(center.x, center.y, orbitRadius, playerAngle - 0.34, playerAngle + 0.34);
+      ctx.stroke();
+
+      const player = pointOnArc(orbitRadius, playerAngle);
+      ctx.shadowColor = '#67e8f9';
+      ctx.shadowBlur = 18;
+      ctx.fillStyle = '#67e8f9';
+      ctx.beginPath();
+      ctx.arc(player.x, player.y, playerSize, 0, TAU);
+      ctx.fill();
+
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = '#ecfeff';
+      ctx.beginPath();
+      ctx.arc(player.x - 3, player.y - 3, playerSize * 0.28, 0, TAU);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    function drawObstacles() {
+      for (const obstacle of obstacles) {
+        if (obstacle.type === 'gate') {
+          ctx.save();
+          ctx.lineWidth = obstacle.thickness;
+          ctx.strokeStyle = `rgba(249, 115, 22, ${0.6 + obstacle.glow * 0.25})`;
+          ctx.shadowColor = 'rgba(251, 146, 60, 0.5)';
+          ctx.shadowBlur = 16;
+          ctx.beginPath();
+          ctx.arc(
+            center.x,
+            center.y,
+            obstacle.radius,
+            obstacle.angle - obstacle.span / 2,
+            obstacle.angle + obstacle.span / 2
+          );
+          ctx.stroke();
+          ctx.restore();
+          continue;
+        }
+
+        const meteor = pointOnArc(obstacle.radius, obstacle.angle);
+        const tail = pointOnArc(obstacle.radius + 18, obstacle.angle);
+
+        ctx.save();
+        ctx.strokeStyle = 'rgba(251, 113, 133, 0.24)';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(tail.x, tail.y);
+        ctx.lineTo(meteor.x, meteor.y);
+        ctx.stroke();
+
+        ctx.fillStyle = '#fb7185';
+        ctx.shadowColor = '#fb7185';
+        ctx.shadowBlur = 16;
+        ctx.beginPath();
+        ctx.arc(meteor.x, meteor.y, obstacle.size, 0, TAU);
+        ctx.fill();
+        ctx.restore();
+      }
+    }
+
+    function drawPickups(time) {
+      for (const pickup of pickups) {
+        const point = pointOnArc(pickup.radius, pickup.angle);
+        const size = pickup.size + Math.sin(time * 0.005 + pickup.pulse) * 1.4;
+
+        ctx.save();
+        ctx.translate(point.x, point.y);
+        ctx.rotate(time * 0.0014 + pickup.pulse);
+        ctx.fillStyle = '#5eead4';
+        ctx.shadowColor = '#2dd4bf';
+        ctx.shadowBlur = 16;
+        ctx.beginPath();
+        ctx.moveTo(0, -size);
+        ctx.lineTo(size, 0);
+        ctx.lineTo(0, size);
+        ctx.lineTo(-size, 0);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+      }
+    }
+
+    function drawPulses() {
+      for (const pulse of pulses) {
+        ctx.save();
+        ctx.strokeStyle = `rgba(103, 232, 249, ${pulse.alpha * 0.85})`;
+        ctx.lineWidth = 5;
+        ctx.beginPath();
+        ctx.arc(center.x, center.y, pulse.radius, 0, TAU);
+        ctx.stroke();
+        ctx.restore();
+      }
+    }
+
+    function drawParticles() {
+      for (const particle of particles) {
+        const alpha = Math.max(0, particle.life / particle.maxLife);
+        ctx.save();
+        ctx.globalAlpha = alpha;
+        ctx.fillStyle = particle.color;
+        ctx.beginPath();
+        ctx.arc(particle.x, particle.y, particle.size, 0, TAU);
+        ctx.fill();
+        ctx.restore();
+      }
+    }
+
+    function drawOverlay() {
+      if (state === 'running') return;
+
+      let title = 'Orbit čeká';
+      let subtitle = 'Stiskněte Start a držte se mimo meteory.';
+      if (state === 'paused') {
+        title = 'Pauza';
+        subtitle = 'Pokračujte, až budete chtít zpět do akce.';
+      } else if (state === 'gameover') {
+        title = 'Kolize';
+        subtitle = `Finální skóre: ${Math.floor(score)}`;
+      }
+
+      ctx.save();
+      ctx.fillStyle = 'rgba(2, 6, 23, 0.42)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.84)';
+      ctx.strokeStyle = 'rgba(125, 211, 252, 0.18)';
+      ctx.lineWidth = 1;
+      roundRect(ctx, center.x - 116, center.y - 56, 232, 112, 18, true, true);
+      ctx.fillStyle = '#f8fafc';
+      ctx.textAlign = 'center';
+      ctx.font = '700 24px "Space Grotesk", sans-serif';
+      ctx.fillText(title, center.x, center.y - 8);
+      ctx.fillStyle = '#cbd5e1';
+      ctx.font = '400 14px "Space Grotesk", sans-serif';
+      ctx.fillText(subtitle, center.x, center.y + 22);
+      ctx.restore();
+    }
+
+    function roundRect(context, x, y, width, height, radius, fill, stroke) {
+      context.beginPath();
+      context.moveTo(x + radius, y);
+      context.lineTo(x + width - radius, y);
+      context.quadraticCurveTo(x + width, y, x + width, y + radius);
+      context.lineTo(x + width, y + height - radius);
+      context.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+      context.lineTo(x + radius, y + height);
+      context.quadraticCurveTo(x, y + height, x, y + height - radius);
+      context.lineTo(x, y + radius);
+      context.quadraticCurveTo(x, y, x + radius, y);
+      context.closePath();
+      if (fill) context.fill();
+      if (stroke) context.stroke();
+    }
+
+    function draw(time) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawBackground(time);
+      drawPulses();
+      drawObstacles();
+      drawPickups(time);
+      drawParticles();
+      drawPlayer();
+      drawOverlay();
+    }
+
+    function loop(time = 0) {
+      if (!lastTime) lastTime = time;
+      const delta = Math.min((time - lastTime) / 1000, 0.05);
+      lastTime = time;
+
+      if (state === 'running') {
+        updateGame(delta);
+      }
+
+      draw(time);
+      requestAnimationFrame(loop);
+    }
+
+    function pointerAngle(event) {
+      const rect = canvas.getBoundingClientRect();
+      const x = (event.clientX - rect.left) * (canvas.width / rect.width) - center.x;
+      const y = (event.clientY - rect.top) * (canvas.height / rect.height) - center.y;
+      return Math.atan2(y, x);
+    }
+
+    document.addEventListener('keydown', event => {
+      if (event.key === 'ArrowLeft' || event.key.toLowerCase() === 'a') {
+        leftPressed = true;
+        event.preventDefault();
+      }
+      if (event.key === 'ArrowRight' || event.key.toLowerCase() === 'd') {
+        rightPressed = true;
+        event.preventDefault();
+      }
+      if (event.key === ' ' || event.code === 'Space') {
+        activatePulse();
+        event.preventDefault();
+      }
+    });
+
+    document.addEventListener('keyup', event => {
+      if (event.key === 'ArrowLeft' || event.key.toLowerCase() === 'a') {
+        leftPressed = false;
+      }
+      if (event.key === 'ArrowRight' || event.key.toLowerCase() === 'd') {
+        rightPressed = false;
+      }
+    });
+
+    canvas.addEventListener('pointerdown', event => {
+      dragPointerId = event.pointerId;
+      canvas.setPointerCapture(event.pointerId);
+      playerAngle = pointerAngle(event);
+    });
+
+    canvas.addEventListener('pointermove', event => {
+      if (event.pointerId === dragPointerId) {
+        playerAngle = pointerAngle(event);
+      }
+    });
+
+    function releasePointer(event) {
+      if (event.pointerId === dragPointerId) {
+        dragPointerId = null;
+      }
+    }
+
+    canvas.addEventListener('pointerup', releasePointer);
+    canvas.addEventListener('pointercancel', releasePointer);
+    canvas.addEventListener('lostpointercapture', () => {
+      dragPointerId = null;
+    });
+
+    btnStart.addEventListener('click', startOrToggleGame);
+    btnRestart.addEventListener('click', restartGame);
+    btnPulse.addEventListener('click', activatePulse);
+
+    updateHud();
+    draw(0);
+    requestAnimationFrame(loop);
+  </script>
+</body>
+</html>

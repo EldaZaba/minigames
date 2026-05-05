@@ -4,7 +4,7 @@
     { id: "sunset", label: "Sunset" },
     { id: "ocean", label: "Ocean" },
     { id: "forest", label: "Forest" },
-    { id: "dark", label: "Tmavý" },
+    { id: "dark", label: "Tmav\u00fd" },
   ];
 
   const root = document.documentElement;
