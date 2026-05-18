@@ -72,10 +72,13 @@
 :root[data-theme="dark"] .home-page .home-mode-card,
 :root[data-theme="dark"] .home-page .home-featured,
 :root[data-theme="dark"] .home-page .home-strip__item,
-:root[data-theme="dark"] .home-page .home-stat {
+:root[data-theme="dark"] .home-page .home-stat,
+:root[data-theme="dark"] .home-page .home-newgame-chip {
   --text: #23180f;
   --text-muted: #6e5a47;
   --accent-3: #0f766e;
+  --surface: rgba(255, 255, 255, 0.88);
+  --surface-border: rgba(59, 35, 20, 0.12);
   color: #23180f;
 }
 
@@ -559,6 +562,33 @@ button {
 .home-pick span {
   color: var(--text-muted);
   font-size: 0.92rem;
+}
+
+.home-newgames-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 1.1rem;
+}
+
+.home-newgame-chip {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.75rem 1rem;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid var(--surface-border);
+  color: var(--text);
+  font-weight: 600;
+  font-size: 0.92rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.home-newgame-chip:hover {
+  color: var(--text);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-soft);
 }
 
 .home-cta {
