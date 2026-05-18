@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="cs">
 <head>
   <meta charset="UTF-8" />
@@ -9,7 +9,6 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="../assets/theme.css" />
   <script src="../assets/theme.js" defer></script>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet" />
   <style>
     body {
       display: flex;
@@ -19,8 +18,23 @@
       padding: clamp(16px, 3vw, 32px);
       gap: 1rem;
     }
-    header {
-      text-align: center;
+    header { text-align: center; }
+    .mode-row { display: flex; gap: 8px; }
+    .mode-btn {
+      padding: 0.45rem 1.1rem;
+      border-radius: 999px;
+      border: 1.5px solid var(--surface-border);
+      background: var(--surface);
+      color: var(--text);
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+    .mode-btn.active {
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: #fff;
+      border-color: transparent;
     }
     #gameBoard {
       width: min(92vw, 420px);
@@ -40,18 +54,18 @@
       background: rgba(148, 163, 184, 0.25);
       box-shadow: inset 0 0 6px rgba(15, 23, 42, 0.45);
       cursor: pointer;
-      transition: transform 0.1s ease, background-color 0.2s ease;
+      transition: transform 0.1s, background-color 0.15s;
     }
-    .cell:active {
-      transform: scale(0.98);
-    }
-    .cell.red {
-      background-color: #ef4444;
-      box-shadow: inset 0 0 8px rgba(127, 29, 29, 0.55);
-    }
-    .cell.yellow {
-      background-color: #fbbf24;
-      box-shadow: inset 0 0 8px rgba(161, 98, 7, 0.5);
+    .cell:active { transform: scale(0.96); }
+    .cell.red { background-color: #ef4444; box-shadow: inset 0 0 8px rgba(127, 29, 29, 0.55); }
+    .cell.yellow { background-color: #fbbf24; box-shadow: inset 0 0 8px rgba(161, 98, 7, 0.5); }
+    .cell.win-cell { box-shadow: 0 0 0 3px #fff, inset 0 0 8px rgba(0,0,0,0.4); }
+    #status {
+      min-height: 1.6rem;
+      font-weight: 600;
+      font-size: 1rem;
+      text-align: center;
+      color: var(--text);
     }
   </style>
 </head>
@@ -62,120 +76,242 @@
   </header>
 
   <div class="panel game-shell" role="main" aria-label="Čtyři v řadě">
+    <div class="mode-row">
+      <button id="btnVsAI" class="mode-btn active">vs Počítač</button>
+      <button id="btnVsHuman" class="mode-btn">vs Hráč</button>
+    </div>
+    <p id="status" class="status" aria-live="polite"></p>
+    <div id="gameBoard" role="grid" aria-label="Čtyři v řadě hra"></div>
+    <p class="hint">Klikněte na sloupec, kam chcete vložit kámen.</p>
     <div class="controls">
       <button id="btnRestart" class="btn btn-secondary">Restart</button>
     </div>
-    <div id="gameBoard" role="grid" aria-label="Čtyři v řadě hra"></div>
-    <p class="hint">Klikněte na sloupec, kam chcete vložit kámen.</p>
   </div>
-
   <a href="../games.html" class="link-back">Zpět na výběr her</a>
 
   <script>
-    const rows = 6;
-    const cols = 7;
-    const gameBoard = document.getElementById('gameBoard');
-    let board = [];
-    let currentPlayer = 'red';
-    let gameActive = true;
+    const ROWS = 6, COLS = 7;
+    const HUMAN = 'red', AI = 'yellow';
+    let vsAI = true;
+    let board = [], currentPlayer = HUMAN, gameActive = true, aiThinking = false;
+
+    const boardEl = document.getElementById('gameBoard');
+    const statusEl = document.getElementById('status');
+    const cellEls = [];
 
     function createBoard() {
-      board = Array(rows).fill(null).map(() => Array(cols).fill(null));
-      gameBoard.innerHTML = '';
-      for (let r = 0; r < rows; r++) {
-        for (let c = 0; c < cols; c++) {
+      board = Array(ROWS).fill(null).map(() => Array(COLS).fill(null));
+      boardEl.innerHTML = '';
+      cellEls.length = 0;
+      for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
           const cell = document.createElement('div');
-          cell.classList.add('cell');
+          cell.className = 'cell';
           cell.dataset.row = r;
           cell.dataset.col = c;
           cell.setAttribute('role', 'button');
           cell.setAttribute('tabindex', '0');
           cell.addEventListener('click', () => handleClick(c));
           cell.addEventListener('keydown', e => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              handleClick(c);
-            }
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleClick(c); }
           });
-          gameBoard.appendChild(cell);
+          boardEl.appendChild(cell);
+          cellEls.push(cell);
         }
       }
     }
 
-    function handleClick(col) {
-      if (!gameActive) return;
-      for (let r = rows - 1; r >= 0; r--) {
-        if (!board[r][col]) {
-          board[r][col] = currentPlayer;
-          updateBoard();
-          if (checkWin(r, col)) {
-            alert(`Hráč ${currentPlayer === 'red' ? 'červený' : 'žlutý'} vyhrál!`);
-            gameActive = false;
-          } else if (isDraw()) {
-            alert('Remíza!');
-            gameActive = false;
-          } else {
-            currentPlayer = currentPlayer === 'red' ? 'yellow' : 'red';
-          }
-          break;
+    function getCell(r, c) {
+      return boardEl.querySelector(`.cell[data-row="${r}"][data-col="${c}"]`);
+    }
+
+    function dropPiece(b, col, player) {
+      for (let r = ROWS - 1; r >= 0; r--) {
+        if (!b[r][col]) { b[r][col] = player; return r; }
+      }
+      return -1;
+    }
+
+    function checkWinAt(b, row, col) {
+      const player = b[row][col];
+      if (!player) return null;
+      const dirs = [[0,1],[1,0],[1,1],[1,-1]];
+      for (const [dr, dc] of dirs) {
+        let cells = [[row, col]];
+        for (let d = 1; d < 4; d++) {
+          const nr = row + dr * d, nc = col + dc * d;
+          if (nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS && b[nr][nc] === player) cells.push([nr, nc]);
+          else break;
         }
+        for (let d = 1; d < 4; d++) {
+          const nr = row - dr * d, nc = col - dc * d;
+          if (nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS && b[nr][nc] === player) cells.push([nr, nc]);
+          else break;
+        }
+        if (cells.length >= 4) return cells.slice(0, 4);
+      }
+      return null;
+    }
+
+    function scoreWindow(win, player) {
+      const opp = player === 'red' ? 'yellow' : 'red';
+      const pc = win.filter(c => c === player).length;
+      const ec = win.filter(c => c === null).length;
+      const oc = win.filter(c => c === opp).length;
+      if (pc === 4) return 100;
+      if (pc === 3 && ec === 1) return 5;
+      if (pc === 2 && ec === 2) return 2;
+      if (oc === 3 && ec === 1) return -4;
+      return 0;
+    }
+
+    function scoreBoard(b, player) {
+      let score = 0;
+      for (let r = 0; r < ROWS; r++) if (b[r][3] === player) score += 3;
+      for (let r = 0; r < ROWS; r++)
+        for (let c = 0; c <= COLS - 4; c++)
+          score += scoreWindow([b[r][c],b[r][c+1],b[r][c+2],b[r][c+3]], player);
+      for (let c = 0; c < COLS; c++)
+        for (let r = 0; r <= ROWS - 4; r++)
+          score += scoreWindow([b[r][c],b[r+1][c],b[r+2][c],b[r+3][c]], player);
+      for (let r = 3; r < ROWS; r++)
+        for (let c = 0; c <= COLS - 4; c++)
+          score += scoreWindow([b[r][c],b[r-1][c+1],b[r-2][c+2],b[r-3][c+3]], player);
+      for (let r = 0; r <= ROWS - 4; r++)
+        for (let c = 0; c <= COLS - 4; c++)
+          score += scoreWindow([b[r][c],b[r+1][c+1],b[r+2][c+2],b[r+3][c+3]], player);
+      return score;
+    }
+
+    function isTerminal(b) {
+      for (let r = 0; r < ROWS; r++)
+        for (let c = 0; c < COLS; c++)
+          if (b[r][c] && checkWinAt(b, r, c)) return true;
+      return b.every(row => row.every(c => c !== null));
+    }
+
+    function validCols(b) {
+      return Array.from({length: COLS}, (_, i) => i).filter(c => !b[0][c]);
+    }
+
+    function minimax(b, depth, alpha, beta, maximizing) {
+      if (isTerminal(b)) {
+        for (let r = 0; r < ROWS; r++)
+          for (let c = 0; c < COLS; c++)
+            if (b[r][c] && checkWinAt(b, r, c))
+              return b[r][c] === AI ? [null, 100000] : [null, -100000];
+        return [null, 0];
+      }
+      if (depth === 0) return [null, scoreBoard(b, AI)];
+
+      const cols = validCols(b);
+      let bestCol = cols[Math.floor(cols.length / 2)];
+
+      if (maximizing) {
+        let val = -Infinity;
+        for (const col of cols) {
+          const nb = b.map(r => [...r]);
+          dropPiece(nb, col, AI);
+          const [, s] = minimax(nb, depth - 1, alpha, beta, false);
+          if (s > val) { val = s; bestCol = col; }
+          alpha = Math.max(alpha, val);
+          if (alpha >= beta) break;
+        }
+        return [bestCol, val];
+      } else {
+        let val = Infinity;
+        for (const col of cols) {
+          const nb = b.map(r => [...r]);
+          dropPiece(nb, col, HUMAN);
+          const [, s] = minimax(nb, depth - 1, alpha, beta, true);
+          if (s < val) { val = s; bestCol = col; }
+          beta = Math.min(beta, val);
+          if (alpha >= beta) break;
+        }
+        return [bestCol, val];
       }
     }
 
     function updateBoard() {
-      for (let r = 0; r < rows; r++) {
-        for (let c = 0; c < cols; c++) {
-          const cell = gameBoard.querySelector(`.cell[data-row="${r}"][data-col="${c}"]`);
-          cell.classList.remove('red', 'yellow');
-          if (board[r][c]) {
-            cell.classList.add(board[r][c]);
-          }
+      for (let r = 0; r < ROWS; r++)
+        for (let c = 0; c < COLS; c++) {
+          const cell = getCell(r, c);
+          cell.classList.remove('red', 'yellow', 'win-cell');
+          if (board[r][c]) cell.classList.add(board[r][c]);
         }
+    }
+
+    function setStatus(msg) { statusEl.textContent = msg; }
+
+    function endGame(winCells, player) {
+      gameActive = false;
+      if (winCells) {
+        winCells.forEach(([r, c]) => getCell(r, c).classList.add('win-cell'));
+        if (vsAI) setStatus(player === HUMAN ? 'Vyhráli jste! 🎉' : 'Počítač vyhrál!');
+        else setStatus(`Hráč ${player === 'red' ? 'červený' : 'žlutý'} vyhrál! 🎉`);
+      } else {
+        setStatus('Remíza!');
       }
     }
 
-    function checkWin(row, col) {
-      const directions = [
-        {r: 0, c: 1},
-        {r: 1, c: 0},
-        {r: 1, c: 1},
-        {r: 1, c: -1}
-      ];
-      const player = board[row][col];
+    function handleClick(col) {
+      if (!gameActive || aiThinking) return;
+      if (vsAI && currentPlayer !== HUMAN) return;
+      if (!board[0][col] === false && board[0][col] !== null) return;
+      const row = dropPiece(board, col, currentPlayer);
+      if (row === -1) return;
+      updateBoard();
 
-      for (const {r: dr, c: dc} of directions) {
-        let count = 1;
-        count += countDirection(row, col, dr, dc, player);
-        count += countDirection(row, col, -dr, -dc, player);
-        if (count >= 4) return true;
+      const winCells = checkWinAt(board, row, col);
+      if (winCells) { endGame(winCells, currentPlayer); return; }
+      if (board.every(r => r.every(c => c))) { endGame(null); return; }
+
+      currentPlayer = currentPlayer === 'red' ? 'yellow' : 'red';
+
+      if (vsAI && currentPlayer === AI) {
+        aiThinking = true;
+        setStatus('Počítač přemýšlí…');
+        setTimeout(() => {
+          const [bestCol] = minimax(board.map(r => [...r]), 5, -Infinity, Infinity, true);
+          const aiRow = dropPiece(board, bestCol, AI);
+          updateBoard();
+          aiThinking = false;
+          const wc = checkWinAt(board, aiRow, bestCol);
+          if (wc) { endGame(wc, AI); return; }
+          if (board.every(r => r.every(c => c))) { endGame(null); return; }
+          currentPlayer = HUMAN;
+          setStatus('Na tahu: červený (vy)');
+        }, 400);
+      } else {
+        setStatus(`Na tahu: ${currentPlayer === 'red' ? 'červený' : 'žlutý'}`);
       }
-      return false;
     }
 
-    function countDirection(row, col, dr, dc, player) {
-      let r = row + dr;
-      let c = col + dc;
-      let count = 0;
-      while (r >= 0 && r < rows && c >= 0 && c < cols && board[r][c] === player) {
-        count++;
-        r += dr;
-        c += dc;
-      }
-      return count;
-    }
-
-    function isDraw() {
-      return board.every(row => row.every(cell => cell !== null));
-    }
-
-    document.getElementById('btnRestart').addEventListener('click', () => {
+    function initGame() {
       gameActive = true;
-      currentPlayer = 'red';
+      aiThinking = false;
+      currentPlayer = HUMAN;
       createBoard();
+      setStatus(vsAI ? 'Na tahu: červený (vy)' : 'Na tahu: červený');
+    }
+
+    document.getElementById('btnVsAI').addEventListener('click', () => {
+      vsAI = true;
+      document.getElementById('btnVsAI').classList.add('active');
+      document.getElementById('btnVsHuman').classList.remove('active');
+      initGame();
     });
 
-    createBoard();
+    document.getElementById('btnVsHuman').addEventListener('click', () => {
+      vsAI = false;
+      document.getElementById('btnVsHuman').classList.add('active');
+      document.getElementById('btnVsAI').classList.remove('active');
+      initGame();
+    });
+
+    document.getElementById('btnRestart').addEventListener('click', initGame);
+
+    initGame();
   </script>
 </body>
 </html>
-

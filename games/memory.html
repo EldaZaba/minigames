@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="cs">
 <head>
   <meta charset="UTF-8" />
@@ -9,7 +9,6 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="../assets/theme.css" />
   <script src="../assets/theme.js" defer></script>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet" />
   <style>
     body {
       display: flex;
@@ -19,8 +18,23 @@
       padding: clamp(16px, 3vw, 32px);
       gap: 1rem;
     }
-    header {
-      text-align: center;
+    header { text-align: center; }
+    .mode-row { display: flex; gap: 8px; }
+    .mode-btn {
+      padding: 0.45rem 1.1rem;
+      border-radius: 999px;
+      border: 1.5px solid var(--surface-border);
+      background: var(--surface);
+      color: var(--text);
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+    .mode-btn.active {
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: #fff;
+      border-color: transparent;
     }
     #gameBoard {
       --card-size: clamp(70px, 18vw, 96px);
@@ -45,15 +59,9 @@
       perspective: 600px;
       background: var(--surface);
     }
-    .card.flipped .front {
-      transform: rotateY(0deg);
-      color: #ffffff;
-    }
-    .card.flipped .back {
-      transform: rotateY(180deg);
-    }
-    .card .front,
-    .card .back {
+    .card.flipped .front { transform: rotateY(0deg); }
+    .card.flipped .back { transform: rotateY(180deg); }
+    .card .front, .card .back {
       position: absolute;
       inset: 0;
       border-radius: 16px;
@@ -69,6 +77,7 @@
       color: transparent;
       transform: rotateY(180deg);
     }
+    .card.flipped .front { color: #fff; }
     .card .back {
       background: var(--surface-2);
       color: var(--text);
@@ -79,11 +88,13 @@
       color: #ffffff;
       border-color: transparent;
     }
-    @media (max-width: 520px) {
-      #gameBoard {
-        gap: 10px;
-      }
+    #statusMsg {
+      min-height: 1.4rem;
+      font-size: 0.92rem;
+      color: var(--text-muted);
+      text-align: center;
     }
+    @media (max-width: 520px) { #gameBoard { gap: 10px; } }
   </style>
 </head>
 <body class="game-page">
@@ -93,11 +104,16 @@
   </header>
 
   <div class="panel game-shell" role="main" aria-label="Pexeso">
+    <div class="mode-row">
+      <button id="btnVsHuman" class="mode-btn active">vs Hráč</button>
+      <button id="btnVsAI" class="mode-btn">vs Počítač</button>
+    </div>
     <div id="gameBoard" aria-label="Herní plocha pexesa" role="grid"></div>
     <div id="playerInfo" class="hud" aria-live="polite">
-      <span id="player1" class="score-pill active">Hráč 1: 0 bodů</span>
-      <span id="player2" class="score-pill">Hráč 2: 0 bodů</span>
+      <span id="player1" class="score-pill active">Hráč 1: 0</span>
+      <span id="player2" class="score-pill">Hráč 2: 0</span>
     </div>
+    <p id="statusMsg"></p>
     <div class="controls">
       <button id="btnRestart" class="btn btn-secondary">Restart</button>
     </div>
@@ -105,30 +121,30 @@
   <a href="../games.html" class="link-back">Zpět na výběr her</a>
 
   <script>
-    const symbols = ['🍎', '🍌', '🍇', '🍉', '🍒', '🥝', '🍍', '🍓'];
-    let cards = [];
-    let flippedCards = [];
-    let matchedCount = 0;
-    let currentPlayer = 1;
-    let scores = {1: 0, 2: 0};
-    const gameBoard = document.getElementById('gameBoard');
-    const player1Display = document.getElementById('player1');
-    const player2Display = document.getElementById('player2');
-    const btnRestart = document.getElementById('btnRestart');
+    const symbols = ['🍎','🍌','🍇','🍉','🍒','🥝','🍍','🍓'];
+    let cards = [], flippedCards = [], matchedCount = 0;
+    let currentPlayer = 1, scores = {1: 0, 2: 0};
+    let vsAI = false, aiLocked = false;
+    const aiMemory = new Map();
 
-    function shuffle(array) {
-      for (let i = array.length - 1; i > 0; i--) {
+    const gameBoard = document.getElementById('gameBoard');
+    const p1El = document.getElementById('player1');
+    const p2El = document.getElementById('player2');
+    const statusMsg = document.getElementById('statusMsg');
+
+    function shuffle(arr) {
+      for (let i = arr.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
+        [arr[i], arr[j]] = [arr[j], arr[i]];
       }
-      return array;
+      return arr;
     }
 
     function createCards() {
       cards = [];
-      symbols.forEach(symbol => {
-        cards.push({symbol, id: Math.random()});
-        cards.push({symbol, id: Math.random()});
+      symbols.forEach(s => {
+        cards.push({ symbol: s, id: Math.random() });
+        cards.push({ symbol: s, id: Math.random() });
       });
       cards = shuffle(cards);
     }
@@ -136,82 +152,142 @@
     function renderCards() {
       gameBoard.innerHTML = '';
       cards.forEach((card, index) => {
-        const cardElement = document.createElement('div');
-        cardElement.classList.add('card');
-        cardElement.setAttribute('role', 'button');
-        cardElement.setAttribute('tabindex', '0');
-        cardElement.setAttribute('aria-label', 'Karta');
-        cardElement.dataset.index = index;
+        const el = document.createElement('div');
+        el.className = 'card';
+        el.setAttribute('role', 'button');
+        el.setAttribute('tabindex', '0');
+        el.setAttribute('aria-label', 'Karta');
+        el.dataset.index = index;
 
         const front = document.createElement('div');
-        front.classList.add('front');
+        front.className = 'front';
         front.textContent = card.symbol;
 
         const back = document.createElement('div');
-        back.classList.add('back');
+        back.className = 'back';
         back.textContent = '❓';
 
-        cardElement.appendChild(front);
-        cardElement.appendChild(back);
-
-        cardElement.addEventListener('click', () => flipCard(cardElement));
-        cardElement.addEventListener('keydown', (e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            flipCard(cardElement);
-          }
+        el.appendChild(front);
+        el.appendChild(back);
+        el.addEventListener('click', () => flipCard(el));
+        el.addEventListener('keydown', e => {
+          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); flipCard(el); }
         });
-
-        gameBoard.appendChild(cardElement);
+        gameBoard.appendChild(el);
       });
     }
 
     function updatePlayerInfo() {
-      player1Display.textContent = `Hráč 1: ${scores[1]} bodů`;
-      player2Display.textContent = `Hráč 2: ${scores[2]} bodů`;
-      if (currentPlayer === 1) {
-        player1Display.classList.add('active');
-        player2Display.classList.remove('active');
-      } else {
-        player2Display.classList.add('active');
-        player1Display.classList.remove('active');
-      }
+      const label2 = vsAI ? 'Počítač' : 'Hráč 2';
+      p1El.textContent = `Hráč 1: ${scores[1]}`;
+      p2El.textContent = `${label2}: ${scores[2]}`;
+      p1El.classList.toggle('active', currentPlayer === 1);
+      p2El.classList.toggle('active', currentPlayer === 2);
     }
 
-    function flipCard(cardElement) {
-      if (flippedCards.length === 2 || cardElement.classList.contains('flipped')) return;
+    function setStatus(msg) { statusMsg.textContent = msg; }
 
-      cardElement.classList.add('flipped');
-      flippedCards.push(cardElement);
+    function flipCard(el) {
+      if (aiLocked) return;
+      if (vsAI && currentPlayer === 2) return;
+      if (flippedCards.length === 2) return;
+      if (el.classList.contains('flipped') || el.classList.contains('matched')) return;
+
+      el.classList.add('flipped');
+      flippedCards.push(el);
+
+      const idx = parseInt(el.dataset.index);
+      aiMemory.set(idx, cards[idx].symbol);
 
       if (flippedCards.length === 2) {
-        setTimeout(checkMatch, 1000);
+        aiLocked = true;
+        setTimeout(checkMatch, 900);
       }
     }
 
     function checkMatch() {
-      const [card1, card2] = flippedCards;
-      const index1 = card1.dataset.index;
-      const index2 = card2.dataset.index;
+      const [c1, c2] = flippedCards;
+      const i1 = parseInt(c1.dataset.index);
+      const i2 = parseInt(c2.dataset.index);
 
-      if (cards[index1].symbol === cards[index2].symbol) {
+      if (cards[i1].symbol === cards[i2].symbol) {
+        c1.classList.add('matched');
+        c2.classList.add('matched');
         matchedCount += 2;
         scores[currentPlayer]++;
         updatePlayerInfo();
         flippedCards = [];
+        aiLocked = false;
+
         if (matchedCount === cards.length) {
-          let winner;
-          if (scores[1] > scores[2]) winner = 'Hráč 1';
-          else if (scores[2] > scores[1]) winner = 'Hráč 2';
-          else winner = 'Remíza';
-          setTimeout(() => alert(`Konec hry! Výsledek: ${winner}`), 200);
+          const label2 = vsAI ? 'Počítač' : 'Hráč 2';
+          if (scores[1] > scores[2]) setStatus('Hráč 1 vyhrál!');
+          else if (scores[2] > scores[1]) setStatus(`${label2} vyhrál!`);
+          else setStatus('Remíza!');
+          return;
+        }
+        if (vsAI && currentPlayer === 2) {
+          setTimeout(doAITurn, 600);
         }
       } else {
-        flippedCards.forEach(card => card.classList.remove('flipped'));
+        flippedCards.forEach(c => c.classList.remove('flipped'));
         flippedCards = [];
         currentPlayer = currentPlayer === 1 ? 2 : 1;
         updatePlayerInfo();
+        aiLocked = false;
+        if (vsAI && currentPlayer === 2) {
+          setStatus('Počítač přemýšlí…');
+          setTimeout(doAITurn, 800);
+        }
       }
+    }
+
+    function getUnflippedIndices() {
+      return Array.from(gameBoard.querySelectorAll('.card:not(.flipped):not(.matched)'))
+        .map(el => parseInt(el.dataset.index));
+    }
+
+    function doAITurn() {
+      const unflipped = getUnflippedIndices();
+      if (unflipped.length === 0) return;
+
+      let pick1 = null, pick2 = null;
+
+      const known = new Map();
+      for (const idx of unflipped) {
+        if (aiMemory.has(idx)) {
+          const sym = aiMemory.get(idx);
+          if (known.has(sym)) {
+            pick1 = known.get(sym);
+            pick2 = idx;
+            break;
+          } else {
+            known.set(sym, idx);
+          }
+        }
+      }
+
+      if (pick1 === null) {
+        const shuffled = shuffle([...unflipped]);
+        pick1 = shuffled[0];
+        pick2 = shuffled[1] ?? shuffled[0];
+      }
+
+      const el1 = gameBoard.querySelector(`.card[data-index="${pick1}"]`);
+      const el2 = gameBoard.querySelector(`.card[data-index="${pick2}"]`);
+      if (!el1 || !el2) { aiLocked = false; return; }
+
+      el1.classList.add('flipped');
+      flippedCards.push(el1);
+      aiMemory.set(pick1, cards[pick1].symbol);
+      setStatus('');
+
+      setTimeout(() => {
+        el2.classList.add('flipped');
+        flippedCards.push(el2);
+        aiMemory.set(pick2, cards[pick2].symbol);
+        setTimeout(checkMatch, 900);
+      }, 600);
     }
 
     function restartGame() {
@@ -219,15 +295,32 @@
       scores = {1: 0, 2: 0};
       currentPlayer = 1;
       flippedCards = [];
+      aiLocked = false;
+      aiMemory.clear();
       createCards();
       renderCards();
       updatePlayerInfo();
+      setStatus('');
     }
 
-    btnRestart.addEventListener('click', restartGame);
+    document.getElementById('btnVsHuman').addEventListener('click', () => {
+      vsAI = false;
+      document.getElementById('btnVsHuman').classList.add('active');
+      document.getElementById('btnVsAI').classList.remove('active');
+      p2El.textContent = 'Hráč 2: 0';
+      restartGame();
+    });
+
+    document.getElementById('btnVsAI').addEventListener('click', () => {
+      vsAI = true;
+      document.getElementById('btnVsAI').classList.add('active');
+      document.getElementById('btnVsHuman').classList.remove('active');
+      restartGame();
+    });
+
+    document.getElementById('btnRestart').addEventListener('click', restartGame);
 
     restartGame();
   </script>
 </body>
 </html>
-

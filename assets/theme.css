@@ -66,10 +66,17 @@
   --shadow-strong: 0 28px 60px rgba(2, 6, 23, 0.7);
 }
 
-:root[data-theme="dark"] .landing-hero .hero-title,
-:root[data-theme="dark"] .landing-hero .hero-subtitle,
-:root[data-theme="dark"] .landing-hero .eyebrow {
-  color: #000000;
+:root[data-theme="dark"] .home-page .panel,
+:root[data-theme="dark"] .home-page .home-quick-chip,
+:root[data-theme="dark"] .home-page .home-pick,
+:root[data-theme="dark"] .home-page .home-mode-card,
+:root[data-theme="dark"] .home-page .home-featured,
+:root[data-theme="dark"] .home-page .home-strip__item,
+:root[data-theme="dark"] .home-page .home-stat {
+  --text: #23180f;
+  --text-muted: #6e5a47;
+  --accent-3: #0f766e;
+  color: #23180f;
 }
 
 :root[data-theme="dark"] .game-card {

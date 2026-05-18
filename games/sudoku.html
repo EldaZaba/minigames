@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" type="image/x-icon" href="../assets/favicon/favicon.ico" />
+  <title>Sudoku - Mě to nebaví CZ</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../assets/theme.css" />
+  <script src="../assets/theme.js" defer></script>
+  <style>
+    body {
+      display: flex; flex-direction: column; align-items: center;
+      min-height: 100vh; padding: clamp(16px,3vw,32px); gap: 1rem;
+    }
+    header { text-align: center; }
+    #sudokuGrid {
+      --cell: clamp(34px, 9vw, 50px);
+      display: grid;
+      grid-template-columns: repeat(9, var(--cell));
+      border: 2px solid var(--text);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .s-cell {
+      width: var(--cell); height: var(--cell);
+      border: 1px solid var(--surface-border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: clamp(14px, 3.5vw, 20px);
+      font-weight: 600;
+      cursor: pointer;
+      user-select: none;
+      background: var(--surface);
+      color: var(--text);
+      transition: background 0.15s;
+      position: relative;
+    }
+    .s-cell.given {
+      background: var(--surface-2);
+      color: var(--text);
+      cursor: default;
+      font-weight: 700;
+    }
+    .s-cell.selected { background: rgba(249,115,22,0.18); }
+    .s-cell.same-num { background: rgba(249,115,22,0.1); }
+    .s-cell.error { color: #ef4444; }
+    .s-cell.box-right { border-right: 2px solid var(--text); }
+    .s-cell.box-bottom { border-bottom: 2px solid var(--text); }
+    #numPad {
+      display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;
+      width: min(92vw, 450px);
+    }
+    .num-btn {
+      width: clamp(34px,9vw,46px); height: clamp(34px,9vw,46px);
+      border-radius: 10px;
+      border: 1px solid var(--surface-border);
+      background: var(--surface);
+      color: var(--text);
+      font-size: clamp(14px,3.5vw,18px);
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+    }
+    .num-btn:hover { background: var(--surface-2); }
+    .num-btn:active { transform: scale(0.94); }
+    .num-btn.erase { color: var(--accent-2); font-size: 1rem; }
+    #message {
+      min-height: 1.4rem; font-weight: 600; font-size: 1rem;
+      text-align: center; color: var(--text);
+    }
+    .diff-row { display: flex; gap: 8px; }
+    .diff-btn {
+      padding: 0.35rem 0.9rem; border-radius: 999px;
+      border: 1.5px solid var(--surface-border); background: var(--surface);
+      color: var(--text); font-weight: 600; font-size: 0.88rem; cursor: pointer;
+      transition: background 0.15s;
+    }
+    .diff-btn.active {
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: #fff; border-color: transparent;
+    }
+  </style>
+</head>
+<body class="game-page">
+  <header>
+    <h1 class="hero-title">Sudoku</h1>
+    <p class="hero-subtitle">Vyplňte mřížku čísly 1–9 bez opakování.</p>
+  </header>
+
+  <div class="panel game-shell" style="width:min(92vw,500px);align-items:center;gap:14px;" role="main">
+    <div class="diff-row">
+      <button class="diff-btn active" data-diff="easy">Lehká</button>
+      <button class="diff-btn" data-diff="medium">Střední</button>
+      <button class="diff-btn" data-diff="hard">Těžká</button>
+    </div>
+    <div id="sudokuGrid" aria-label="Sudoku mřížka"></div>
+    <div id="numPad" aria-label="Číselník"></div>
+    <p id="message" aria-live="polite"></p>
+    <div class="controls">
+      <button id="btnCheck" class="btn">Zkontrolovat</button>
+      <button id="btnNew" class="btn btn-secondary">Nová hra</button>
+    </div>
+  </div>
+  <a href="../games.html" class="link-back">Zpět na výběr her</a>
+
+  <script>
+    const PUZZLES = {
+      easy: [
+        {
+          puzzle:   '530070000600195000098000060800060003400803001700020006060000280000419005000080079',
+          solution: '534678912672195348198342567859761423426853791713924856961537284287419635345286179'
+        },
+        {
+          puzzle:   '800000000003600000070090200060005300400803001005300090030400600000700500200001480',
+          solution: '812753649943682175675491238168945327457832916329167498734519862591278453286394571'
+        }
+      ],
+      medium: [
+        {
+          puzzle:   '010020300004005060070000008006900070000830000080006900200000010050700600007040090',
+          solution: '819427356234985167675312498346951872951836724782164935423679581598741623167548299'
+        },
+        {
+          puzzle:   '000000907000420180000705026100904000050000040000507009920108000034059000507000000',
+          solution: '416832957795426183283715426168294375952371648374587219921168534634952871587643912'
+        }
+      ],
+      hard: [
+        {
+          puzzle:   '800000000003600000070090200060005300400803001005300090030400600000700500200001480',
+          solution: '812753649943682175675491238168945327457832916329167498734519862591278453286394571'
+        },
+        {
+          puzzle:   '000600400700003600000091080000000000050180003000306045040200060903000000007040000',
+          solution: '581672439792843651463591782147958326256184973839326145314265897975438264628019318'
+        }
+      ]
+    };
+
+    let selectedCell = null;
+    let grid = [];
+    let solution = [];
+    let given = [];
+    let difficulty = 'easy';
+
+    function loadPuzzle() {
+      const pool = PUZZLES[difficulty];
+      const entry = pool[Math.floor(Math.random() * pool.length)];
+      const puzzleStr = entry.puzzle;
+      const solStr = entry.solution;
+      grid = puzzleStr.split('').map(Number);
+      solution = solStr.split('').map(Number);
+      given = grid.map(v => v !== 0);
+    }
+
+    function buildGrid() {
+      const el = document.getElementById('sudokuGrid');
+      el.innerHTML = '';
+      for (let i = 0; i < 81; i++) {
+        const r = Math.floor(i / 9), c = i % 9;
+        const cell = document.createElement('div');
+        cell.className = 's-cell';
+        cell.dataset.index = i;
+        if (given[i]) {
+          cell.classList.add('given');
+          cell.textContent = grid[i];
+        } else {
+          cell.textContent = grid[i] !== 0 ? grid[i] : '';
+        }
+        if (c === 2 || c === 5) cell.classList.add('box-right');
+        if (r === 2 || r === 5) cell.classList.add('box-bottom');
+        cell.addEventListener('click', () => selectCell(i));
+        el.appendChild(cell);
+      }
+    }
+
+    function buildNumPad() {
+      const el = document.getElementById('numPad');
+      el.innerHTML = '';
+      for (let n = 1; n <= 9; n++) {
+        const btn = document.createElement('button');
+        btn.className = 'num-btn';
+        btn.textContent = n;
+        btn.addEventListener('click', () => enterNum(n));
+        el.appendChild(btn);
+      }
+      const del = document.createElement('button');
+      del.className = 'num-btn erase';
+      del.innerHTML = '<i class="fas fa-backspace"></i>';
+      del.addEventListener('click', () => enterNum(0));
+      el.appendChild(del);
+    }
+
+    function getCells() { return document.querySelectorAll('.s-cell'); }
+
+    function selectCell(index) {
+      if (given[index]) { selectedCell = null; clearHighlights(); return; }
+      selectedCell = index;
+      highlightCells();
+    }
+
+    function clearHighlights() {
+      getCells().forEach(c => c.classList.remove('selected', 'same-num', 'error'));
+    }
+
+    function highlightCells() {
+      clearHighlights();
+      if (selectedCell === null) return;
+      const cells = getCells();
+      const val = grid[selectedCell];
+      const sr = Math.floor(selectedCell / 9), sc = selectedCell % 9;
+      cells.forEach((cell, i) => {
+        const r = Math.floor(i / 9), c = i % 9;
+        const sameBox = Math.floor(r/3) === Math.floor(sr/3) && Math.floor(c/3) === Math.floor(sc/3);
+        if (i === selectedCell) { cell.classList.add('selected'); return; }
+        if (val && grid[i] === val) cell.classList.add('same-num');
+        if (r === sr || c === sc || sameBox) cell.classList.add('same-num');
+      });
+    }
+
+    function enterNum(num) {
+      if (selectedCell === null || given[selectedCell]) return;
+      grid[selectedCell] = num;
+      const cells = getCells();
+      cells[selectedCell].textContent = num !== 0 ? num : '';
+      cells[selectedCell].classList.remove('error');
+      highlightCells();
+      document.getElementById('message').textContent = '';
+    }
+
+    function checkSolution() {
+      let errors = 0;
+      const cells = getCells();
+      cells.forEach((cell, i) => {
+        cell.classList.remove('error');
+        if (!given[i] && grid[i] !== 0 && grid[i] !== solution[i]) {
+          cell.classList.add('error');
+          errors++;
+        }
+      });
+      const filled = grid.every(v => v !== 0);
+      if (!filled) {
+        document.getElementById('message').textContent = `Ještě nejste hotovi. Chyby: ${errors}`;
+      } else if (errors === 0) {
+        document.getElementById('message').textContent = 'Správně! Gratulujeme! 🎉';
+      } else {
+        document.getElementById('message').textContent = `${errors} chybných čísel — zkontrolujte červená pole.`;
+      }
+    }
+
+    function initGame() {
+      loadPuzzle();
+      buildGrid();
+      selectedCell = null;
+      document.getElementById('message').textContent = '';
+    }
+
+    document.querySelectorAll('.diff-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        difficulty = btn.dataset.diff;
+        document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        initGame();
+      });
+    });
+
+    document.getElementById('btnCheck').addEventListener('click', checkSolution);
+    document.getElementById('btnNew').addEventListener('click', initGame);
+
+    document.addEventListener('keydown', e => {
+      if (e.key >= '1' && e.key <= '9') enterNum(parseInt(e.key));
+      if (e.key === 'Backspace' || e.key === 'Delete' || e.key === '0') enterNum(0);
+    });
+
+    buildNumPad();
+    initGame();
+  </script>
+</body>
+</html>

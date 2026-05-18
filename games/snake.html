@@ -112,6 +112,8 @@
     let direction = { x: 1, y: 0 };
     let nextDirection = { x: 1, y: 0 };
     let food = { x: 0, y: 0 };
+    let bonusFood = null;
+    let bonusTimer = 0;
     let score = 0;
     let bestScore = 0;
     let running = false;
@@ -157,12 +159,26 @@
       return Math.floor(Math.random() * cells);
     }
 
+    function isFree(pos) {
+      return !snake.some(s => s.x === pos.x && s.y === pos.y) &&
+             !(bonusFood && bonusFood.x === pos.x && bonusFood.y === pos.y);
+    }
+
     function placeFood() {
       let position = { x: randomCell(), y: randomCell() };
-      while (snake.some(segment => segment.x === position.x && segment.y === position.y)) {
+      while (!isFree(position) || (bonusFood && bonusFood.x === position.x && bonusFood.y === position.y)) {
         position = { x: randomCell(), y: randomCell() };
       }
       food = position;
+    }
+
+    function trySpawnBonus() {
+      if (bonusFood || score < 5) return;
+      if (Math.random() > 0.15) return;
+      let pos = { x: randomCell(), y: randomCell() };
+      let tries = 0;
+      while (!isFree(pos) && tries++ < 20) pos = { x: randomCell(), y: randomCell() };
+      if (isFree(pos)) { bonusFood = pos; bonusTimer = 12; }
     }
 
     function resetGame() {
@@ -174,6 +190,8 @@
       direction = { x: 1, y: 0 };
       nextDirection = { x: 1, y: 0 };
       score = 0;
+      bonusFood = null;
+      bonusTimer = 0;
       running = false;
       gameOver = false;
       lastTime = 0;
@@ -231,8 +249,20 @@
         updateBest();
         setSpeedFromScore();
         placeFood();
+        trySpawnBonus();
+      } else if (bonusFood && head.x === bonusFood.x && head.y === bonusFood.y) {
+        score += 3;
+        bonusFood = null;
+        bonusTimer = 0;
+        updateScore();
+        updateBest();
+        setSpeedFromScore();
       } else {
         snake.pop();
+        if (bonusFood) {
+          bonusTimer--;
+          if (bonusTimer <= 0) bonusFood = null;
+        }
       }
     }
 
@@ -260,21 +290,34 @@
       const padding = 2;
 
       ctx.fillStyle = '#f97316';
-      ctx.fillRect(
-        food.x * gridSize + padding,
-        food.y * gridSize + padding,
-        gridSize - padding * 2,
-        gridSize - padding * 2
-      );
+      ctx.beginPath();
+      ctx.roundRect(food.x * gridSize + padding, food.y * gridSize + padding, gridSize - padding * 2, gridSize - padding * 2, 4);
+      ctx.fill();
+
+      if (bonusFood) {
+        const pulse = 0.7 + 0.3 * Math.sin(Date.now() / 150);
+        ctx.globalAlpha = pulse;
+        ctx.fillStyle = '#facc15';
+        ctx.beginPath();
+        ctx.roundRect(bonusFood.x * gridSize + padding, bonusFood.y * gridSize + padding, gridSize - padding * 2, gridSize - padding * 2, 4);
+        ctx.fill();
+        ctx.globalAlpha = 1;
+        ctx.fillStyle = '#0f172a';
+        ctx.font = '10px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('+3', bonusFood.x * gridSize + gridSize / 2, bonusFood.y * gridSize + gridSize / 2 + 4);
+      }
 
       snake.forEach((segment, index) => {
-        ctx.fillStyle = index === 0 ? '#38bdf8' : '#22c55e';
-        ctx.fillRect(
-          segment.x * gridSize + padding,
-          segment.y * gridSize + padding,
-          gridSize - padding * 2,
-          gridSize - padding * 2
-        );
+        if (index === 0) {
+          ctx.fillStyle = '#38bdf8';
+          ctx.beginPath();
+          ctx.roundRect(segment.x * gridSize + padding, segment.y * gridSize + padding, gridSize - padding * 2, gridSize - padding * 2, 5);
+          ctx.fill();
+        } else {
+          ctx.fillStyle = `hsl(${142 - index * 2}, 70%, ${46 - Math.min(index, 10)}%)`;
+          ctx.fillRect(segment.x * gridSize + padding, segment.y * gridSize + padding, gridSize - padding * 2, gridSize - padding * 2);
+        }
       });
 
       ctx.fillStyle = '#e2e8f0';
