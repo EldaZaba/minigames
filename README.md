@@ -92,8 +92,6 @@ MiniGames/
 Stačí otevřít `index.html` v prohlížeči. Pro správné načítání relativních cest lze použít jednoduchý server:
 
 ```bash
-npx serve .
-# nebo
 python -m http.server 8080
 ```
 
