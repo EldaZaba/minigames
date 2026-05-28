@@ -1,6 +1,6 @@
 # Mě to nebaví CZ — Online Minihry
 
-Sbírka 19 browserových miniher v češtině, hratelných zdarma bez instalace na mobilu i počítači.
+Sbírka 20 browserových miniher v češtině, hratelných zdarma bez instalace na mobilu i počítači.
 
 **Web:** [metonebavi.cz](https://www.metonebavi.cz/)
 
@@ -28,6 +28,9 @@ Sbírka 19 browserových miniher v češtině, hratelných zdarma bez instalace 
 - **Minesweeper** — odkryjte všechna bezpečná pole bez miny
 - **Lights Out** — zhasněte všechna světla přepínáním políček
 - **Puzzle** — skládejte obrázek z dílků
+
+**Nástroje a zábava**
+- **Kolo štěstí & Team Maker** — točící se kolo s vlastními segmenty; oddělená záložka pro náhodné rozdělení lidí do týmů (s podporou skupiny „spolu")
 
 **Strategické a slovní**
 - **Piškvorky** — vs hráč nebo vs AI (Lehký = beatable / Těžký = minimax)
@@ -82,7 +85,8 @@ MiniGames/
     ├── sudoku.html
     ├── tetris.html
     ├── tictactoe.html
-    └── whackamole.html
+    ├── whackamole.html
+    └── wheeloffortune.html
 ```
 
 ---
