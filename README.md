@@ -30,7 +30,7 @@ Sbírka 20 browserových miniher v češtině, hratelných zdarma bez instalace 
 - **Puzzle** — skládejte obrázek z dílků
 
 **Nástroje a zábava**
-- **Kolo štěstí & Team Maker** — točící se kolo s vlastními segmenty; oddělená záložka pro náhodné rozdělení lidí do týmů (s podporou skupiny „spolu")
+- **Kolo štěstí & Team Maker** — točící se kolo s vlastními segmenty; oddělená záložka pro náhodné rozdělení lidí do týmů.
 
 **Strategické a slovní**
 - **Piškvorky** — vs hráč nebo vs AI (Lehký = beatable / Těžký = minimax)
